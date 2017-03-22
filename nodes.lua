@@ -70,6 +70,7 @@ minetest.register_node("subterrane:dry_stal_1", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -91,6 +92,7 @@ minetest.register_node("subterrane:dry_stal_2", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -112,6 +114,7 @@ minetest.register_node("subterrane:dry_stal_3", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -133,6 +136,7 @@ minetest.register_node("subterrane:dry_stal_4", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -148,6 +152,7 @@ minetest.register_node("subterrane:dry_flowstone", {
 	description = S("Dry Flowstone"),
 	tiles = {"default_stone.png^[brighten"},
 	groups = {cracky = 3, stone = 1},
+	is_ground_content = true,
 	drop = 'default:cobble',
 	sounds = default.node_sound_stone_defaults(),
 })
@@ -166,6 +171,7 @@ minetest.register_node("subterrane:wet_stal_1", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -187,6 +193,7 @@ minetest.register_node("subterrane:wet_stal_2", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -208,6 +215,7 @@ minetest.register_node("subterrane:wet_stal_3", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -229,6 +237,7 @@ minetest.register_node("subterrane:wet_stal_4", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
+	is_ground_content = true,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -244,6 +253,7 @@ minetest.register_node("subterrane:wet_flowstone", {
 	description = S("Wet Flowstone"),
 	tiles = {"default_stone.png^[brighten^subterrane_dripstone_streaks.png"},
 	groups = {cracky = 3, stone = 1, subterrane_wet_dripstone = 1},
+	is_ground_content = true,
 	drop = 'default:cobble',
 	sounds = default.node_sound_stone_defaults(),
 })
