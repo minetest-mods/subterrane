@@ -150,13 +150,13 @@ function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gi
 		data[vi] = stem_material
 		if cap_radius > 3 then
 			local ai = area:index(x, y+j, z+1)
-			if data[ai] == c_air then data[ai] = stem_material end
+			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x, y+j, z-1)
-			if data[ai] == c_air then data[ai] = stem_material end
+			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x+1, y+j, z)
-			if data[ai] == c_air then data[ai] = stem_material end
+			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x-1, y+j, z)
-			if data[ai] == c_air then data[ai] = stem_material end
+			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
 		end
 	end
 end
