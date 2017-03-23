@@ -16,7 +16,6 @@ dofile(modpath.."/features.lua")
 dofile(modpath.."/player_spawn.lua")
 
 local c_lava = minetest.get_content_id("default:lava_source")
---local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
 local c_obsidian = minetest.get_content_id("default:obsidian")
 local c_stone = minetest.get_content_id("default:stone")
 local c_air = minetest.get_content_id("air")
@@ -58,9 +57,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 	local BLEND = math.min(cave_layer_def.boundary_blend_range or 128, (YMAX-YMIN)/2)
 	local TCAVE = cave_layer_def.cave_threshold or 0.5
 
-	-- 3D noise for cave
 	local np_cave = cave_layer_def.perlin_cave or subterrane.default_perlin_cave
-	-- 3D noise for wave
 	local np_wave = cave_layer_def.perlin_wave or subterrane.default_perlin_wave
 	
 	local yblmin = YMIN + BLEND * 1.5
@@ -151,7 +148,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 					end
 					
 					if biome and biome._subterrane_mitigate_lava and (nvals_cave[index_3d] + nvals_wave[index_3d])/2 > tcave - 0.1 then -- Eliminate nearby lava to keep it from spilling in
-						if data[vi] == c_lava then -- or data[vi] == c_lava_flowing then
+						if data[vi] == c_lava then
 							data[vi] = c_obsidian
 						end
 					end
@@ -233,7 +230,6 @@ function subterrane:register_cave_layer(cave_layer_def)
 								then --ceiling
 								biome._subterrane_cave_ceiling_decor(area, data, ai, vi, bi, data_param2)
 							end
-							--ground
 							if biome._subterrane_cave_floor_decor
 								and data[bi] ~= cave_fill_node
 								and data[vi] == cave_fill_node
