@@ -35,6 +35,7 @@ function subterrane:stalagmite(vi, area, data, param2_data, param2, height, is_w
 		id_modifier = 0
 	end
 	
+	data[vi] = c_air -- force the first node to be viable. It's assumed some testing was done before calling this function.
 	for i = 1, math.abs(height) do
 		vi = area:index(x, y + height - i * sign, z)
 		if data[vi] == c_air then
