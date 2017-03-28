@@ -17,24 +17,24 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:64
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:85
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:106
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:127
+#: nodes.lua:64
+#: nodes.lua:85
+#: nodes.lua:106
+#: nodes.lua:127
 msgid "Dry Dripstone"
 msgstr ""
 
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:148
+#: nodes.lua:148
 msgid "Dry Flowstone"
 msgstr ""
 
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:160
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:181
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:202
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:223
+#: nodes.lua:160
+#: nodes.lua:181
+#: nodes.lua:202
+#: nodes.lua:223
 msgid "Wet Dripstone"
 msgstr ""
 
-#: C:\Users\Bryan\Downloads\minetest-0.4.15-win64\mods\minetest-caverealms\subterrane\nodes.lua:244
+#: nodes.lua:244
 msgid "Wet Flowstone"
 msgstr ""
