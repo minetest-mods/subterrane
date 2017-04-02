@@ -12,6 +12,7 @@ The API has the following methods:
 
 cave_layer_def is a table of the form:
 
+```
 {
 	minimum_depth = -- required, the highest elevation this cave layer will be generated in.
 	maximum_depth = -- required, the lowest elevation this cave layer will be generated in.
@@ -20,23 +21,22 @@ cave_layer_def is a table of the form:
 	perlin_cave = -- optional, a 3D perlin noise definition table to define the shape of the caves
 	perlin_wave = -- optional, a 3D perlin noise definition table that's averaged with the cave noise to add floor strata (squash its spread on the y axis relative to perlin_cave to accomplish this)
 }
+```
 
 This causes large caverns to be hollowed out during map generation. By default these caverns are just featureless cavities, but you can add extra subterrane-specific properties to biomes and the mapgen code will use them to add features of your choice. Subterrane's biome properties are:
 
-biome._subterrane_mitigate_lava  -- If this is set to a non-false value, subterrane will try to turn all lava within about 10-20 nodes of the cavern into obsidian. This attempts to prevent lava from spilling into the cavern when the player visits, though it is by no means a perfect solution.
-biome._subterrane_fill_node -- The nodeid that subterrane will fill the excavated cavern with. You could use this to create enormous underground oceans or lava pockets. If not provided, will default to "air"
-biome._subterrane_cave_fill_node -- If this is set to a nodeid, subterrane will use that to replace the air in existing default caves.
-
-biome._subterrane_ceiling_decor = function (area, data, ai, vi, bi, data_param2)
-biome._subterrane_floor_decor = function (area, data, ai, vi, bi, data_param2)
+- biome._subterrane_mitigate_lava  -- If this is set to a non-false value, subterrane will try to turn all lava within about 10-20 nodes of the cavern into obsidian. This attempts to prevent lava from spilling into the cavern when the player visits, though it is by no means a perfect solution.
+- biome._subterrane_fill_node -- The nodeid that subterrane will fill the excavated cavern with. You could use this to create enormous underground oceans or lava pockets. If not provided, will default to "air"
+- biome._subterrane_cave_fill_node -- If this is set to a nodeid, subterrane will use that to replace the air in existing default caves.
+- biome._subterrane_ceiling_decor = function (area, data, ai, vi, bi, data_param2)
+- biome._subterrane_floor_decor = function (area, data, ai, vi, bi, data_param2)
 
 If defined, these functions will be executed once for each floor or ceiling node in the excavated cavern. "area" is the mapgen voxelarea, data and data_param2 are the voxelmanip's data arrays, "ai" is the index of the node "above" the current node, "vi" is the index of the current node, and "bi" is the index of the node "below" the current node.
 
 The node pointed to by index vi will always start out filled with the cavern's fill node (air by default).
 
-
-biome._subterrane_cave_ceiling_decor = function(area, data, ai, vi, bi, data_param2)
-biome._subterrane_cave_floor_decor = function(area, data, ai, vi, bi, data_param2)
+- biome._subterrane_cave_ceiling_decor = function(area, data, ai, vi, bi, data_param2)
+- biome._subterrane_cave_floor_decor = function(area, data, ai, vi, bi, data_param2)
 
 These are basically the same as the previous two methods, but these get executed for pre-existing tunnels instead of the caverns excavated by subterrane.
 
@@ -44,9 +44,9 @@ These are basically the same as the previous two methods, but these get executed
 
 Use this method when you want the following biome methods to be applied to pre-existing caves within a range of y values but don't want to excavate giant caverns there:
 
-biome._subterrane_cave_fill_node -- If this is set to a nodeid, subterrane will use that to replace the air in existing default caves.
-biome._subterrane_cave_ceiling_decor = function(area, data, ai, vi, bi, data_param2)
-biome._subterrane_cave_floor_decor = function(area, data, ai, vi, bi, data_param2)
+- biome._subterrane_cave_fill_node -- If this is set to a nodeid, subterrane will use that to replace the air in existing default caves.
+- biome._subterrane_cave_ceiling_decor = function(area, data, ai, vi, bi, data_param2)
+- biome._subterrane_cave_floor_decor = function(area, data, ai, vi, bi, data_param2)
 
 It's essentially a trimmed-down version of register_cave_layer.
 
@@ -58,9 +58,11 @@ Takes a voxelmanip index and the corresponding area object, and returns a pseudo
 
 This is mainly intended for use when placing stalactites and stalagmites, since in a natural cavern these two features are almost always paired with each other spatially. If you use the following test in both the floor and ceiling decoration methods:
 
+```
 if subterrane:vertically_consistent_random(vi, area) > 0.05 then
 	--stuff
 end
+```
 
 then you'll get a random distribution that's identical on the floor and ceiling.
 
