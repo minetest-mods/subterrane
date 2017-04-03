@@ -41,6 +41,9 @@ subterrane.default_perlin_wave = {
 local data = {}
 local data_param2 = {}
 
+local nvals_cave_buffer = {}
+local nvals_wave_buffer = {}
+
 --{
 --	minimum_depth = -- required, the highest elevation this cave layer will be generated in.
 --	maximum_depth = -- required, the lowest elevation this cave layer will be generated in.
@@ -111,8 +114,8 @@ function subterrane:register_cave_layer(cave_layer_def)
 		nobj_cave = nobj_cave or minetest.get_perlin_map(np_cave, chunk_lengths)
 		nobj_wave = nobj_wave or minetest.get_perlin_map(np_wave, chunk_lengths)
 	
-		local nvals_cave = nobj_cave:get3dMap_flat(minposxyz) --cave noise for structure
-		local nvals_wave = nobj_wave:get3dMap_flat(minposxyz) --wavy structure of cavern ceilings and floors
+		local nvals_cave = nobj_cave:get3dMap_flat(minposxyz, nvals_cave_buffer) --cave noise for structure
+		local nvals_wave = nobj_wave:get3dMap_flat(minposxyz, nvals_wave_buffer) --wavy structure of cavern ceilings and floors
 		
 		local index_3d = 1 --3D node index
 		local index_2d = 1 --2D node index
