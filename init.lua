@@ -15,6 +15,32 @@ dofile(modpath.."/functions.lua") --function definitions
 dofile(modpath.."/features.lua")
 dofile(modpath.."/player_spawn.lua")
 
+subterrane.disable_mapgen_caverns = function()
+	local mg_name = minetest.get_mapgen_setting("mg_name")
+	local flags_name
+	if mg_name == "v7" then flags_name = "mgv7_spflags"
+	elseif mg_name == "v5" then flags_name = "mgv5_spflags"
+	else
+		return
+	end
+	local function split(source, delimiters)
+		local elements = {}
+		local pattern = '([^'..delimiters..']+)'
+		string.gsub(source, pattern, function(value) elements[#elements + 1] = value; end);
+		return elements
+	end
+	local flags = split(minetest.get_mapgen_setting(flags_name), ", ")
+	local new_flags = {}
+	for _, flag in pairs(flags) do
+		if flag ~= "caverns" then
+			table.insert(new_flags, flag)
+		end
+	end
+	table.insert(new_flags, "nocaverns")
+	minetest.set_mapgen_setting(flags_name, table.concat(new_flags, ","), true)
+end
+subterrane.disable_mapgen_caverns() -- defaulting to disabling them, for now. Need to assess how to integrate this feature into subterrane better.
+
 local c_lava = minetest.get_content_id("default:lava_source")
 local c_obsidian = minetest.get_content_id("default:obsidian")
 local c_stone = minetest.get_content_id("default:stone")
