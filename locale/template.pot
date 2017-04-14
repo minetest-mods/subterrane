@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-19 15:55-0600\n"
+"POT-Creation-Date: 2017-04-14 20:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: nodes.lua:64
-#: nodes.lua:85
-#: nodes.lua:106
-#: nodes.lua:127
+#: nodes.lua
 msgid "Dry Dripstone"
 msgstr ""
 
-#: nodes.lua:148
+#: nodes.lua
 msgid "Dry Flowstone"
 msgstr ""
 
-#: nodes.lua:160
-#: nodes.lua:181
-#: nodes.lua:202
-#: nodes.lua:223
+#: nodes.lua
 msgid "Wet Dripstone"
 msgstr ""
 
-#: nodes.lua:244
+#: nodes.lua
 msgid "Wet Flowstone"
 msgstr ""
