@@ -78,7 +78,7 @@ minetest.register_node("subterrane:dry_stal_1", {
 		}
 	},
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_1")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_1")
 	end,
 })
 
@@ -100,7 +100,7 @@ minetest.register_node("subterrane:dry_stal_2", {
 		}
 	},
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_2")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_2")
 	end,
 })
 
@@ -122,7 +122,7 @@ minetest.register_node("subterrane:dry_stal_3", {
 		}
 	},
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_3")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_3")
 	end,
 })
 
@@ -144,7 +144,7 @@ minetest.register_node("subterrane:dry_stal_4", {
 		}
 	},
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_4")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_4")
 	end,
 })
 
@@ -178,8 +178,9 @@ minetest.register_node("subterrane:wet_stal_1", {
 			{-0.0625+x_disp, -0.5, -0.0625+z_disp, 0.0625+x_disp, 0.5, 0.0625+z_disp},
 		}
 	},
+	drop = "subterrane:dry_stal_1",
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_1")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_1")
 	end,
 })
 
@@ -200,8 +201,9 @@ minetest.register_node("subterrane:wet_stal_2", {
 			{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.125+z_disp},
 		}
 	},
+	drop = "subterrane:dry_stal_2",
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_2")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_2")
 	end,
 })
 
@@ -222,8 +224,9 @@ minetest.register_node("subterrane:wet_stal_3", {
 			{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}, 
 		}
 	},
+	drop = "subterrane:dry_stal_3",
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_3")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_3")
 	end,
 })
 
@@ -244,8 +247,9 @@ minetest.register_node("subterrane:wet_stal_4", {
 			{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}, 
 		}
 	},
+	drop = "subterrane:dry_stal_4",
 	on_place = function(itemstack, placer, pointed_thing)
-		stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_4")
+		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_4")
 	end,
 })
 
