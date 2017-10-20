@@ -65,7 +65,7 @@ minetest.register_node("subterrane:dry_stal_1", {
 	tiles = {
 		"default_stone.png^[brighten",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -87,7 +87,7 @@ minetest.register_node("subterrane:dry_stal_2", {
 	tiles = {
 		"default_stone.png^[brighten",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -109,7 +109,7 @@ minetest.register_node("subterrane:dry_stal_3", {
 	tiles = {
 		"default_stone.png^[brighten",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -131,7 +131,7 @@ minetest.register_node("subterrane:dry_stal_4", {
 	tiles = {
 		"default_stone.png^[brighten",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -166,7 +166,7 @@ minetest.register_node("subterrane:wet_stal_1", {
 	tiles = {
 		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, subterrane_wet_dripstone = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, subterrane_wet_dripstone = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -189,7 +189,7 @@ minetest.register_node("subterrane:wet_stal_2", {
 	tiles = {
 		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, subterrane_wet_dripstone = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, subterrane_wet_dripstone = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -212,7 +212,7 @@ minetest.register_node("subterrane:wet_stal_3", {
 	tiles = {
 		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -235,7 +235,7 @@ minetest.register_node("subterrane:wet_stal_4", {
 	tiles = {
 		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1, digtron_on_place=1,},
+	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1,},
 	sounds = default.node_sound_stone_defaults(),
 	drawtype = "nodebox",
 	paramtype = "light",
