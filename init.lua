@@ -300,7 +300,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 		vm:set_lighting({day = 0, night = 0})
 		vm:calc_lighting()
 		--write it to world
-		vm:write_to_map(data)
+		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
 		print ("[subterrane] "..chunk_generation_time.." ms") --tell people how long
@@ -403,7 +403,7 @@ function subterrane:register_cave_decor(minimum_depth, maximum_depth)
 		vm:set_lighting({day = 0, night = 0})
 		vm:calc_lighting()
 		--write it to world
-		vm:write_to_map(data)
+		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
 		print ("[subterrane] "..chunk_generation_time.." ms") --tell people how long
