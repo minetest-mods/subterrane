@@ -19,38 +19,28 @@ local stal_on_place = function(itemstack, placer, pointed_thing, itemname)
 	local under = minetest.get_node(pt.under)
 	local above = minetest.get_node(pt.above)
 
-	if minetest.is_protected(pt.under, placer:get_player_name()) then
-		minetest.record_protection_violation(pt.under, placer:get_player_name())
-		return
-	end
 	if minetest.is_protected(pt.above, placer:get_player_name()) then
 		minetest.record_protection_violation(pt.above, placer:get_player_name())
 		return
 	end
 
 	-- return if any of the nodes is not registered
-	if not minetest.registered_nodes[under.name] then
+	if not minetest.registered_nodes[under.name] or not minetest.registered_nodes[above.name] then
 		return itemstack
 	end
-	if not minetest.registered_nodes[above.name] then
-		return itemstack
-	end
-
-	local new_param2
-	-- check if pointing at the top or bottom of an existing stalactite
-	if (pt.above.y == pt.under.y - 1 or pt.above.y == pt.under.y + 1)
-		and minetest.get_item_group(under.name, "subterrane_stal_align") ~= 0
-		then
-			new_param2 = under.param2
-	else
-		new_param2 = math.random(0,3)
-	end
-
 	-- check if you can replace the node above the pointed node
 	if not minetest.registered_nodes[above.name].buildable_to then
 		return itemstack
 	end
-	
+
+	local new_param2
+	-- check if pointing at an existing stalactite
+	if minetest.get_item_group(under.name, "subterrane_stal_align") ~= 0 then
+		new_param2 = under.param2
+	else
+		new_param2 = math.random(0,3)
+	end
+
 	-- add the node and remove 1 item from the itemstack
 	minetest.add_node(pt.above, {name = itemname, param2 = new_param2})
 	if not minetest.setting_getbool("creative_mode") then
