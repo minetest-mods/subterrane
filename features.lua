@@ -2,29 +2,33 @@ local c_dry_stal_1 = minetest.get_content_id("subterrane:dry_stal_1") -- thinnes
 local c_dry_stal_2 = minetest.get_content_id("subterrane:dry_stal_2")
 local c_dry_stal_3 = minetest.get_content_id("subterrane:dry_stal_3")
 local c_dry_stal_4 = minetest.get_content_id("subterrane:dry_stal_4") -- thickest
-
+subterrane.dry_stalagmite_ids = {c_dry_stal_1, c_dry_stal_2, c_dry_stal_3, c_dry_stal_4}
 local c_wet_stal_1 = minetest.get_content_id("subterrane:wet_stal_1") -- thinnest
 local c_wet_stal_2 = minetest.get_content_id("subterrane:wet_stal_2")
 local c_wet_stal_3 = minetest.get_content_id("subterrane:wet_stal_3")
 local c_wet_stal_4 = minetest.get_content_id("subterrane:wet_stal_4") -- thickest
+subterrane.wet_stalagmite_ids = {c_wet_stal_1, c_wet_stal_2, c_wet_stal_3, c_wet_stal_4}
+local c_icicle_1 = minetest.get_content_id("subterrane:icicle_1") -- thinnest
+local c_icicle_2 = minetest.get_content_id("subterrane:icicle_2")
+local c_icicle_3 = minetest.get_content_id("subterrane:icicle_3")
+local c_icicle_4 = minetest.get_content_id("subterrane:icicle_4") -- thickest
+subterrane.icicle_ids = {c_icicle_1, c_icicle_2, c_icicle_3, c_icicle_4}
+
+local c_test = minetest.get_content_id("default:obsidian")
 
 local c_air = minetest.get_content_id("air")
 
-local wet_stalagmite_id = {c_wet_stal_1, c_wet_stal_2, c_wet_stal_3, c_wet_stal_4}
-local dry_stalagmite_id = {c_dry_stal_1, c_dry_stal_2, c_dry_stal_3, c_dry_stal_4}
-
 -- use a negative height to turn this into a stalactite
-function subterrane:stalagmite(vi, area, data, param2_data, param2, height, is_wet)
+-- stalagmite_id is a table of the content ids of the four stalagmite sections, from _1 to _4.
+function subterrane:stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
 	local pos = area:position(vi)
+	
 	local x = pos.x
 	local y = pos.y
 	local z = pos.z
 	
 	if height == nil then height = math.random(1,4) end
 	if param2 == nil then param2 = math.random(0,3) end
-	
-	local stalagmite_id = nil
-	if is_wet then stalagmite_id = wet_stalagmite_id else stalagmite_id = dry_stalagmite_id end
 	
 	local sign, id_modifier
 	if height > 0 then

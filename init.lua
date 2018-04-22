@@ -61,6 +61,7 @@ local c_lava = minetest.get_content_id("default:lava_source")
 local c_obsidian = minetest.get_content_id("default:obsidian")
 local c_stone = minetest.get_content_id("default:stone")
 local c_air = minetest.get_content_id("air")
+local c_wet_flowstone = minetest.get_content_id("subterrane:wet_flowstone")
 
 subterrane.default_perlin_cave = {
 	offset = 0,
@@ -86,6 +87,7 @@ local data_param2 = {}
 local nvals_cave_buffer = {}
 local nvals_wave_buffer = {}
 
+-- cave_layer_def
 --{
 --	minimum_depth = -- required, the highest elevation this cave layer will be generated in.
 --	maximum_depth = -- required, the lowest elevation this cave layer will be generated in.
@@ -93,7 +95,41 @@ local nvals_wave_buffer = {}
 --	boundary_blend_range = -- optional, range near ymin and ymax over which caves diminish to nothing. Defaults to 128.
 --	perlin_cave = -- optional, a 3D perlin noise definition table to define the shape of the caves
 --	perlin_wave = -- optional, a 3D perlin noise definition table that's averaged with the cave noise to add floor strata (squash its spread on the y axis relative to perlin_cave to accomplish this)
+--	columns = -- optional, a column_def table for producing truly enormous dripstone formations
 --}
+
+-- column_def
+--{
+--	max_column_radius = -- Maximum radius for individual columns, defaults to 10
+--	min_column_radius = -- Minimum radius for individual columns, defaults to 2 (going lower can increase the likelihood of "intermittent" columns with floating sections)
+--	node = -- node name to build columns out of. Defaults to "subterrane:wet_flowstone"
+--	weight = -- a floating point value (usually in the range of 0.5-1) to modify how strongly the column is affected by the surrounding cave. Lower values create a more variable, tapered stalactite/stalagmite combination whereas a value of 1 produces a roughly cylindrical column. Defaults to 0.5
+--	maximum_count = -- The maximum number of columns placed in any given column region (each region being a square 4 times the length and width of a map chunk). Defaults to 100
+--	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 25.
+--}
+
+--extra biome properties used by subterrane
+--{
+--	_subterrane_ceiling_decor = -- function for putting stuff on the ceiling of the big caverns
+--	_subterrane_floor_decor =  -- function for putting stuff on the floor of the big caverns
+--	_subterrane_fill_node = -- node to fill the cavern with (defaults to air)
+--	_subterrane_column_node = -- override the node the giant columns in this biome are made from
+--	_subterrane_cave_floor_decor = -- function for putting stuff on the floors of other preexisting open space
+--	_subterrane_cave_ceiling_decor = -- function for putting stuff on the ceiling of other preexisting open space
+--	_subterrane_mitigate_lava = -- try to patch the walls of big caverns with obsidian plugs when lava intersects. Not perfect, but helpful.
+--	_subterrane_override_sea_level = -- Y coordinate where an underground sea level begins. Biomes' y coordinate cutoffs are unreliable underground, this forces subterrane to take this sea level cutoff into account.
+--	_subterrane_override_under_sea_biome = -- When below the override_sea_level, the biome with this name will be looked up and substituted.
+--	_subterrane_column_node = -- overrides the node type of a cavern layer's column_def, if there are columns here.
+--}
+
+local default_column = {
+	max_column_radius = 10,
+	min_column_radius = 2,
+	node = c_wet_flowstone,
+	weight = 0.25,
+	maximum_count = 100,
+	minimum_count = 25,
+}
 
 function subterrane:register_cave_layer(cave_layer_def)
 
@@ -112,6 +148,18 @@ function subterrane:register_cave_layer(cave_layer_def)
 	local nobj_cave = nil
 	local nobj_wave = nil
 	
+	local column_def = cave_layer_def.columns
+	local c_column
+
+	if column_def then
+		column_def.max_column_radius = column_def.max_column_radius or default_column.max_column_radius
+		column_def.min_column_radius = column_def.min_column_radius or default_column.min_column_radius
+		c_column = column_def.node or default_column.node
+		column_def.weight = column_def.weight or default_column.weight
+		column_def.maximum_count = column_def.maximum_count or default_column.maximum_count
+		column_def.minimum_count = column_def.minimum_count or default_column.minimum_count
+	end
+	
 	-- On generated function
 	minetest.register_on_generated(function(minp, maxp, seed)
 		--if out of range of cave definition limits, abort
@@ -127,7 +175,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 				subterrane.biome_ids[i] = desc.name
 			end
 		end
-	
+
 		--easy reference to commonly used values
 		local t_start = os.clock()
 		local x_max = maxp.x
@@ -152,7 +200,15 @@ function subterrane:register_cave_layer(cave_layer_def)
 		local chunk_lengths2D = {x = sidelen, y = sidelen, z = 1}
 		local minposxyz = {x = x_min, y = y_min, z = z_min} --bottom corner
 		local minposxz = {x = x_min, y = z_min} --2D bottom corner
-		
+
+		local column_points = nil
+		local column_weight = nil
+		if column_def then
+			column_points = subterrane.get_scatter_grid(minp, sidelen*4, column_def.minimum_count, column_def.maximum_count)
+			column_points = subterrane.prune_points(minp, maxp, column_def.min_column_radius, column_def.max_column_radius, column_points)
+			column_weight = column_def.weight
+		end
+			
 		nobj_cave = nobj_cave or minetest.get_perlin_map(np_cave, chunk_lengths)
 		nobj_wave = nobj_wave or minetest.get_perlin_map(np_wave, chunk_lengths)
 	
@@ -182,17 +238,34 @@ function subterrane:register_cave_layer(cave_layer_def)
 					local biome = minetest.registered_biomes[biome_name]
 									
 					local fill_node = c_air
-					if biome and biome._subterrane_fill_node then
-						fill_node = biome._subterrane_fill_node
+					local column_node = c_column
+					if biome then
+						if biome._subterrane_fill_node then
+							fill_node = biome._subterrane_fill_node
+						end
+						if biome._subterrane_column_node then
+							column_node = biome._subterrane_column_node
+						end
 					end
 	
-					if (nvals_cave[index_3d] + nvals_wave[index_3d])/2 > tcave then --if node falls within cave threshold
-						data[vi] = fill_node --hollow it out to make the cave
+					local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
+					local column_value = 0
+					if column_def then
+						column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points, max_column_radius)
+					end
+					if cave_value > tcave then --if node falls within cave threshold
+						if cave_value > tcave then
+							if column_value > 0 and cave_value - column_value * column_weight < tcave then
+								data[vi] = column_node -- add a column
+							else
+								data[vi] = fill_node --hollow it out to make the cave
+							end
+						end
 					elseif biome and biome._subterrane_cave_fill_node and data[vi] == c_air then
 						data[vi] = biome._subterrane_cave_fill_node
 					end
 					
-					if biome and biome._subterrane_mitigate_lava and (nvals_cave[index_3d] + nvals_wave[index_3d])/2 > tcave - 0.1 then -- Eliminate nearby lava to keep it from spilling in
+					if biome and biome._subterrane_mitigate_lava and cave_value > tcave - 0.1 then -- Eliminate nearby lava to keep it from spilling in
 						if data[vi] == c_lava then
 							data[vi] = c_obsidian
 						end
@@ -229,10 +302,20 @@ function subterrane:register_cave_layer(cave_layer_def)
 					local biome = minetest.registered_biomes[biome_name]
 					local fill_node = c_air
 					local cave_fill_node = c_air
+					
+					if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
+						local override_name = biome._subterrane_override_under_sea_biome
+						if override_name then
+							biome = minetest.registered_biomes[override_name]
+						else
+							biome = nil
+						end
+					end
 	
 					if biome then
+						local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
 						-- only check nodes near the edges of caverns
-						if math.floor(((nvals_cave[index_3d] + nvals_wave[index_3d])/2)*50) == math.floor(tcave*50) then
+						if math.floor(cave_value*30) == math.floor(tcave*30) then
 							if biome._subterrane_fill_node then
 								fill_node = biome._subterrane_fill_node
 							end					
@@ -256,7 +339,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 								biome._subterrane_floor_decor(area, data, ai, vi, bi, data_param2)
 							end
 							
-						elseif (nvals_cave[index_3d] + nvals_wave[index_3d])/2 <= tcave then --if node falls outside cave threshold
+						elseif cave_value <= tcave then --if node falls outside cave threshold
 							-- decorate other "native" caves and tunnels
 							if biome._subterrane_cave_fill_node then
 								cave_fill_node = biome._subterrane_cave_fill_node
