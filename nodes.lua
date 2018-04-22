@@ -49,93 +49,70 @@ local stal_on_place = function(itemstack, placer, pointed_thing, itemname)
 	return itemstack
 end
 
+local stal_box_1 = {{-0.0625+x_disp, -0.5, -0.0625+z_disp, 0.0625+x_disp, 0.5, 0.0625+z_disp}}
+local stal_box_2 = {{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.125+z_disp}}
+local stal_box_3 = {{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}}
+local stal_box_4 = {{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}}
 
-minetest.register_node("subterrane:dry_stal_1", {
+subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_base_name)
+	base_node_def.groups = base_node_def.groups or {}
+	base_node_def.groups.subterrane_stal_align = 1
+	base_node_def.groups.flow_through = 1
+	base_node_def.drawtype = "nodebox"
+	base_node_def.paramtype = "light"
+	base_node_def.paramtype2 = "facedir"
+	base_node_def.is_ground_content = true
+	base_node_def.node_box = {type = "fixed"}
+	
+	base_node_def.groups.fall_damage_add_percent = 100
+	base_node_def.node_box.fixed = stal_box_1
+	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_1")
+	end
+	if drop_base_name then
+		base_node_def.drop = drop_base_name.."_1"
+	end
+	minetest.register_node(base_name.."_1", base_node_def)
+	
+	base_node_def.groups.fall_damage_add_percent = 50
+	base_node_def.node_box.fixed = stal_box_2
+	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_2")
+	end
+	if drop_base_name then
+		base_node_def.drop = drop_base_name.."_2"
+	end
+	minetest.register_node(base_name.."_2", base_node_def)
+
+	base_node_def.groups.fall_damage_add_percent = nil
+	base_node_def.node_box.fixed = stal_box_3
+	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_3")
+	end
+	if drop_base_name then
+		base_node_def.drop = drop_base_name.."_3"
+	end
+	minetest.register_node(base_name.."_3", base_node_def)
+
+	base_node_def.node_box.fixed = stal_box_4
+	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_4")
+	end
+	if drop_base_name then
+		base_node_def.drop = drop_base_name.."_4"
+	end
+	minetest.register_node(base_name.."_4", base_node_def)
+end
+
+-----------------------------------------------
+
+subterrane.register_stalagmite_nodes("subterrane:dry_stal", {
 	description = S("Dry Dripstone"),
 	tiles = {
 		"default_stone.png^[brighten",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, flow_through=1,},
+	groups = {cracky = 3, stone = 2},
 	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.0625+x_disp, -0.5, -0.0625+z_disp, 0.0625+x_disp, 0.5, 0.0625+z_disp},
-		}
-	},
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_1")
-	end,
-})
-
-minetest.register_node("subterrane:dry_stal_2", {
-	description = S("Dry Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.125+z_disp},
-		}
-	},
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_2")
-	end,
-})
-
-minetest.register_node("subterrane:dry_stal_3", {
-	description = S("Dry Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}, 
-		}
-	},
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_3")
-	end,
-})
-
-minetest.register_node("subterrane:dry_stal_4", {
-	description = S("Dry Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}, 
-		}
-	},
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:dry_stal_4")
-	end,
 })
 
 minetest.register_node("subterrane:dry_flowstone", {
@@ -147,101 +124,17 @@ minetest.register_node("subterrane:dry_flowstone", {
 	sounds = default.node_sound_stone_defaults(),
 })
 
-
 -----------------------------------------------
 
-
-minetest.register_node("subterrane:wet_stal_1", {
-	description = S("Wet Dripstone"),
+subterrane.register_stalagmite_nodes("subterrane:wet_stal", {
+	description = S("Dry Dripstone"),
 	tiles = {
 		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
 	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=100, subterrane_wet_dripstone = 1, flow_through=1,},
+	groups = {cracky = 3, stone = 2, subterrane_wet_dripstone = 1},
 	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.0625+x_disp, -0.5, -0.0625+z_disp, 0.0625+x_disp, 0.5, 0.0625+z_disp},
-		}
-	},
-	drop = "subterrane:dry_stal_1",
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_1")
-	end,
-})
+}, "subterrane:dry_stal")
 
-minetest.register_node("subterrane:wet_stal_2", {
-	description = S("Wet Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, fall_damage_add_percent=50, subterrane_wet_dripstone = 1, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.125+z_disp},
-		}
-	},
-	drop = "subterrane:dry_stal_2",
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_2")
-	end,
-})
-
-minetest.register_node("subterrane:wet_stal_3", {
-	description = S("Wet Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}, 
-		}
-	},
-	drop = "subterrane:dry_stal_3",
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_3")
-	end,
-})
-
-minetest.register_node("subterrane:wet_stal_4", {
-	description = S("Wet Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_stal_align = 1, subterrane_wet_dripstone = 1, flow_through=1,},
-	sounds = default.node_sound_stone_defaults(),
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	is_ground_content = true,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}, 
-		}
-	},
-	drop = "subterrane:dry_stal_4",
-	on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, "subterrane:wet_stal_4")
-	end,
-})
 
 minetest.register_node("subterrane:wet_flowstone", {
 	description = S("Wet Flowstone"),
@@ -250,4 +143,15 @@ minetest.register_node("subterrane:wet_flowstone", {
 	is_ground_content = true,
 	drop = 'default:cobble',
 	sounds = default.node_sound_stone_defaults(),
+})
+
+-----------------------------------------------
+
+subterrane.register_stalagmite_nodes("subterrane:icicle", {
+	description = S("Icicle"),
+	tiles = {
+		"default_ice.png",
+	},
+	groups = {cracky = 3, puts_out_fire = 1, cools_lava = 1, slippery = 3},
+	sounds = default.node_sound_glass_defaults(),
 })
