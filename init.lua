@@ -61,7 +61,6 @@ local c_lava = minetest.get_content_id("default:lava_source")
 local c_obsidian = minetest.get_content_id("default:obsidian")
 local c_stone = minetest.get_content_id("default:stone")
 local c_air = minetest.get_content_id("air")
-local c_wet_flowstone = minetest.get_content_id("subterrane:wet_flowstone")
 
 subterrane.default_perlin_cave = {
 	offset = 0,
@@ -102,7 +101,7 @@ local nvals_wave_buffer = {}
 --{
 --	max_column_radius = -- Maximum radius for individual columns, defaults to 10
 --	min_column_radius = -- Minimum radius for individual columns, defaults to 2 (going lower can increase the likelihood of "intermittent" columns with floating sections)
---	node = -- node name to build columns out of. Defaults to "subterrane:wet_flowstone"
+--	node = -- node name to build columns out of. Defaults to default:stone
 --	weight = -- a floating point value (usually in the range of 0.5-1) to modify how strongly the column is affected by the surrounding cave. Lower values create a more variable, tapered stalactite/stalagmite combination whereas a value of 1 produces a roughly cylindrical column. Defaults to 0.5
 --	maximum_count = -- The maximum number of columns placed in any given column region (each region being a square 4 times the length and width of a map chunk). Defaults to 100
 --	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 25.
@@ -125,7 +124,7 @@ local nvals_wave_buffer = {}
 local default_column = {
 	max_column_radius = 10,
 	min_column_radius = 2,
-	node = c_wet_flowstone,
+	node = c_stone,
 	weight = 0.25,
 	maximum_count = 100,
 	minimum_count = 25,
@@ -236,7 +235,16 @@ function subterrane:register_cave_layer(cave_layer_def)
 	
 					local biome_name = subterrane.biome_ids[biomemap[index_2d]]
 					local biome = minetest.registered_biomes[biome_name]
-									
+
+					if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
+						local override_name = biome._subterrane_override_under_sea_biome
+						if override_name then
+							biome = minetest.registered_biomes[override_name]
+						else
+							biome = nil
+						end
+					end
+					
 					local fill_node = c_air
 					local column_node = c_column
 					if biome then

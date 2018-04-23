@@ -1,10 +1,5 @@
--- internationalization boilerplate
-local MP = minetest.get_modpath(minetest.get_current_modname())
-local S, NS = dofile(MP.."/intllib.lua")
-
 local x_disp = 0.125
 local z_disp = 0.125
-
 
 local stal_on_place = function(itemstack, placer, pointed_thing, itemname)
 	local pt = pointed_thing
@@ -103,55 +98,3 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 	end
 	minetest.register_node(base_name.."_4", base_node_def)
 end
-
------------------------------------------------
-
-subterrane.register_stalagmite_nodes("subterrane:dry_stal", {
-	description = S("Dry Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten",
-	},
-	groups = {cracky = 3, stone = 2},
-	sounds = default.node_sound_stone_defaults(),
-})
-
-minetest.register_node("subterrane:dry_flowstone", {
-	description = S("Dry Flowstone"),
-	tiles = {"default_stone.png^[brighten"},
-	groups = {cracky = 3, stone = 1},
-	is_ground_content = true,
-	drop = 'default:cobble',
-	sounds = default.node_sound_stone_defaults(),
-})
-
------------------------------------------------
-
-subterrane.register_stalagmite_nodes("subterrane:wet_stal", {
-	description = S("Dry Dripstone"),
-	tiles = {
-		"default_stone.png^[brighten^subterrane_dripstone_streaks.png",
-	},
-	groups = {cracky = 3, stone = 2, subterrane_wet_dripstone = 1},
-	sounds = default.node_sound_stone_defaults(),
-}, "subterrane:dry_stal")
-
-
-minetest.register_node("subterrane:wet_flowstone", {
-	description = S("Wet Flowstone"),
-	tiles = {"default_stone.png^[brighten^subterrane_dripstone_streaks.png"},
-	groups = {cracky = 3, stone = 1, subterrane_wet_dripstone = 1},
-	is_ground_content = true,
-	drop = 'default:cobble',
-	sounds = default.node_sound_stone_defaults(),
-})
-
------------------------------------------------
-
-subterrane.register_stalagmite_nodes("subterrane:icicle", {
-	description = S("Icicle"),
-	tiles = {
-		"default_ice.png",
-	},
-	groups = {cracky = 3, puts_out_fire = 1, cools_lava = 1, slippery = 3},
-	sounds = default.node_sound_glass_defaults(),
-})

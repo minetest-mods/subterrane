@@ -1,21 +1,3 @@
-local c_dry_stal_1 = minetest.get_content_id("subterrane:dry_stal_1") -- thinnest
-local c_dry_stal_2 = minetest.get_content_id("subterrane:dry_stal_2")
-local c_dry_stal_3 = minetest.get_content_id("subterrane:dry_stal_3")
-local c_dry_stal_4 = minetest.get_content_id("subterrane:dry_stal_4") -- thickest
-subterrane.dry_stalagmite_ids = {c_dry_stal_1, c_dry_stal_2, c_dry_stal_3, c_dry_stal_4}
-local c_wet_stal_1 = minetest.get_content_id("subterrane:wet_stal_1") -- thinnest
-local c_wet_stal_2 = minetest.get_content_id("subterrane:wet_stal_2")
-local c_wet_stal_3 = minetest.get_content_id("subterrane:wet_stal_3")
-local c_wet_stal_4 = minetest.get_content_id("subterrane:wet_stal_4") -- thickest
-subterrane.wet_stalagmite_ids = {c_wet_stal_1, c_wet_stal_2, c_wet_stal_3, c_wet_stal_4}
-local c_icicle_1 = minetest.get_content_id("subterrane:icicle_1") -- thinnest
-local c_icicle_2 = minetest.get_content_id("subterrane:icicle_2")
-local c_icicle_3 = minetest.get_content_id("subterrane:icicle_3")
-local c_icicle_4 = minetest.get_content_id("subterrane:icicle_4") -- thickest
-subterrane.icicle_ids = {c_icicle_1, c_icicle_2, c_icicle_3, c_icicle_4}
-
-local c_test = minetest.get_content_id("default:obsidian")
-
 local c_air = minetest.get_content_id("air")
 
 -- use a negative height to turn this into a stalactite
