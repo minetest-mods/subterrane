@@ -259,7 +259,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 					local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
 					local column_value = 0
 					if column_def then
-						column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points, max_column_radius)
+						column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points)
 					end
 					if cave_value > tcave then --if node falls within cave threshold
 						if cave_value > tcave then

@@ -49,6 +49,14 @@ local stal_box_2 = {{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.12
 local stal_box_3 = {{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}}
 local stal_box_4 = {{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}}
 
+local simple_copy = function(t)
+	local r = {}
+	for k, v in pairs(t) do
+		r[k] = v
+	end
+	return r
+end
+
 subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_base_name)
 	base_node_def.groups = base_node_def.groups or {}
 	base_node_def.groups.subterrane_stal_align = 1
@@ -59,42 +67,45 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 	base_node_def.is_ground_content = true
 	base_node_def.node_box = {type = "fixed"}
 	
-	base_node_def.groups.fall_damage_add_percent = 100
-	base_node_def.node_box.fixed = stal_box_1
-	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+	local def1 = simple_copy(base_node_def)
+	def1.groups.fall_damage_add_percent = 100
+	def1.node_box.fixed = stal_box_1
+	def1.on_place = function(itemstack, placer, pointed_thing)
 		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_1")
 	end
 	if drop_base_name then
-		base_node_def.drop = drop_base_name.."_1"
+		def1.drop = drop_base_name.."_1"
 	end
-	minetest.register_node(base_name.."_1", base_node_def)
-	
-	base_node_def.groups.fall_damage_add_percent = 50
-	base_node_def.node_box.fixed = stal_box_2
-	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+	minetest.register_node(base_name.."_1", def1)
+
+	local def2 = simple_copy(base_node_def)
+	def2.groups.fall_damage_add_percent = 50
+	def2.node_box.fixed = stal_box_2
+	def2.on_place = function(itemstack, placer, pointed_thing)
 		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_2")
 	end
 	if drop_base_name then
-		base_node_def.drop = drop_base_name.."_2"
+		def2.drop = drop_base_name.."_2"
 	end
-	minetest.register_node(base_name.."_2", base_node_def)
+	minetest.register_node(base_name.."_2", def2)
 
-	base_node_def.groups.fall_damage_add_percent = nil
-	base_node_def.node_box.fixed = stal_box_3
-	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+	local def3 = simple_copy(base_node_def)
+	def3.node_box.fixed = stal_box_3
+	def3.on_place = function(itemstack, placer, pointed_thing)
 		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_3")
 	end
 	if drop_base_name then
-		base_node_def.drop = drop_base_name.."_3"
+		def3.drop = drop_base_name.."_3"
 	end
-	minetest.register_node(base_name.."_3", base_node_def)
+	minetest.register_node(base_name.."_3", def3)
 
-	base_node_def.node_box.fixed = stal_box_4
-	base_node_def.on_place = function(itemstack, placer, pointed_thing)
+	local def4 = simple_copy(base_node_def)
+	def4.node_box.fixed = stal_box_4
+	def4.on_place = function(itemstack, placer, pointed_thing)
 		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_4")
 	end
 	if drop_base_name then
-		base_node_def.drop = drop_base_name.."_4"
+		def4.drop = drop_base_name.."_4"
 	end
-	minetest.register_node(base_name.."_4", base_node_def)
+	minetest.register_node(base_name.."_4", def4)
 end
