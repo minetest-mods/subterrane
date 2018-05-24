@@ -75,9 +75,23 @@ This method is provided in subterrane because the default mod includes and "unde
 
 # Common cavern features
 
-## subterrane:stalagmite(vi, area, data, param2_data, param2, height, is_wet)
 
-Subterrane comes with a set of simple stalactite and stalagmite nodes. This method can be used to create a small stalactite or stalagmite, generally no more than 5 nodes tall. Use a negative height to generate a stalactite.
+## subterrane.register_stalagmite_nodes(base_name, base_node_def, drop_base_name)
+
+This registers a set of four standardized stalactite/stalagmite nodes that can be used with the subterrane:stalagmite function below. "base name" is a string that forms the prefix of the names of the nodes defined, for example the coolcaves mod might use "coolcaves:crystal_stal" and the resulting nodes registered would be "coolcaves:crystal_stal_1" through "coolcaves:crystal_stal_4". "base_node_def" is a node definition table much like is used with the usual node registration function. register_stalagmite_nodes will amend or substitute properties in this definition as needed, so the simplest base_node_def might just define the textures used. "drop_base_name" is an optional string that will substitute the node drops with stalagmites created by another use of register_stalagmite_nodes, for example if you wrote
+
+```
+	subterrane.register_stalagmite_nodes("coolcaves:dry_stal", base_dry_node_def)
+	subterrane.register_stalagmite_nodes("coolcaves:wet_stal", base_wet_node_def, "coolcaves:dry_stal")
+```
+
+then when the player mines a dry stalactite they'll get a dry stalactite node and if they mine a wet stalactite they'll get a corresponding dry stalactite node as the drop instead.
+
+This method returns a table consisting of the content IDs for the four stalactite nodes, which can be used directly in the following method:
+
+## subterrane:stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
+
+This method can be used to create a small stalactite or stalagmite, generally no more than 5 nodes tall. Use a negative height to generate a stalactite. The parameter stalagmite_id is a table of four content IDs for the stalagmite nodes, in order from thinnest ("_1") to thickest ("_4"). The register_stalagmite_nodes method returns a table that can be used for this directly.
 
 ## subterrane:giant_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
 

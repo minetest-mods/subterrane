@@ -108,4 +108,11 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 		def4.drop = drop_base_name.."_4"
 	end
 	minetest.register_node(base_name.."_4", def4)
+	
+	return {
+		minetest.get_content_id(base_name.."_1"),
+		minetest.get_content_id(base_name.."_2"),
+		minetest.get_content_id(base_name.."_3"),
+		minetest.get_content_id(base_name.."_4"),
+	}
 end
