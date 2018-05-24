@@ -1,7 +1,9 @@
 --These nodes used to be defined by subterrane but were pulled due to not wanting to force all mods that use it to create these nodes.
 --For backwards compatibility they can still be defined here, however.
 
-if minetest.setting_getbool("subterrane_enable_legacy_dripstone") then
+local enable_legacy = minetest.setting_getbool("subterrane_enable_legacy_dripstone")
+
+if enable_legacy == nil or enable_legacy == true then
 
 subterrane.register_stalagmite_nodes("subterrane:dry_stal", {
 	description = "Dry Dripstone",
