@@ -20,16 +20,34 @@ cave_layer_def is a table of the form:
 	boundary_blend_range = -- optional, range near ymin and ymax over which caves diminish to nothing. Defaults to 128.
 	perlin_cave = -- optional, a 3D perlin noise definition table to define the shape of the caves
 	perlin_wave = -- optional, a 3D perlin noise definition table that's averaged with the cave noise to add floor strata (squash its spread on the y axis relative to perlin_cave to accomplish this)
+	columns = -- optional, a column_def table for producing truly enormous stalactite and stalagmite formations that often fuse into columnar features
 }
 ```
 
+The column_def table is of the form:
+
+```
+{
+	max_column_radius = -- Maximum radius for individual columns, defaults to 10
+	min_column_radius = -- Minimum radius for individual columns, defaults to 2 (going lower can increase the likelihood of "intermittent" columns with floating sections)
+	node = -- node name to build columns out of. Defaults to default:stone
+	weight = -- a floating point value (usually in the range of 0.5-1) to modify how strongly the column is affected by the surrounding cave. Lower values create a more variable, tapered stalactite/stalagmite combination whereas a value of 1 produces a roughly cylindrical column. Defaults to 0.5
+	maximum_count = -- The maximum number of columns placed in any given column region (each region being a square 4 times the length and width of a map chunk). Defaults to 100
+	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 25.
+}
+```
+
+
 This causes large caverns to be hollowed out during map generation. By default these caverns are just featureless cavities, but you can add extra subterrane-specific properties to biomes and the mapgen code will use them to add features of your choice. Subterrane's biome properties are:
 
-- biome._subterrane_mitigate_lava  -- If this is set to a non-false value, subterrane will try to turn all lava within about 10-20 nodes of the cavern into obsidian. This attempts to prevent lava from spilling into the cavern when the player visits, though it is by no means a perfect solution.
+- biome._subterrane_mitigate_lava  -- If this is set to a non-false value, subterrane will try to turn all lava within about 10-20 nodes of the cavern into obsidian. This attempts to prevent lava from spilling into the cavern when the player visits, though it is by no means a perfect solution since it cannot account for non-subterrane-generated caves allowing lava to pour in.
 - biome._subterrane_fill_node -- The nodeid that subterrane will fill the excavated cavern with. You could use this to create enormous underground oceans or lava pockets. If not provided, will default to "air"
 - biome._subterrane_cave_fill_node -- If this is set to a nodeid, subterrane will use that to replace the air in existing default caves.
 - biome._subterrane_ceiling_decor = function (area, data, ai, vi, bi, data_param2)
 - biome._subterrane_floor_decor = function (area, data, ai, vi, bi, data_param2)
+- biome._subterrane_override_sea_level = -- Optional, the Y coordinate where an underground sea level begins. Biomes' y coordinate cutoffs are unreliable underground, this forces subterrane to take this sea level cutoff into account.
+- biome._subterrane_override_under_sea_biome = -- When below the override_sea_level, the biome with this name will be looked up and substituted.
+- biome._subterrane_column_node = -- overrides the node type of a cavern layer's column_def, if there are columns here. This can be useful for example to substitute wet flowstone in humid biomes, or obsidian in volcanic biomes.
 
 If defined, these functions will be executed once for each floor or ceiling node in the excavated cavern. "area" is the mapgen voxelarea, data and data_param2 are the voxelmanip's data arrays, "ai" is the index of the node "above" the current node, "vi" is the index of the current node, and "bi" is the index of the node "below" the current node.
 
