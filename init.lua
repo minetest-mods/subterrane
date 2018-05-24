@@ -14,6 +14,7 @@ dofile(modpath.."/nodes.lua")
 dofile(modpath.."/functions.lua") --function definitions
 dofile(modpath.."/features.lua")
 dofile(modpath.."/player_spawn.lua")
+dofile(modpath.."/legacy.lua") -- contains old node definitions, will be removed at some point in the future.
 
 subterrane.disable_mapgen_caverns = function()
 	local mg_name = minetest.get_mapgen_setting("mg_name")
