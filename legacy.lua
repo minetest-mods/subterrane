@@ -59,9 +59,9 @@ local wet_stalagmite_ids = {
 
 function subterrane:stalagmite(vi, area, data, param2_data, param2, height, is_wet)
 	if is_wet then
-		subterrane:stalagmite(vi, area, data, param2_data, param2, height, wet_stalagmite_ids)
+		subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, wet_stalagmite_ids)
 	else
-		subterrane:stalagmite(vi, area, data, param2_data, param2, height, dry_stalagmite_ids)	
+		subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, dry_stalagmite_ids)	
 	end
 end
 
