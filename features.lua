@@ -2,7 +2,7 @@ local c_air = minetest.get_content_id("air")
 
 -- use a negative height to turn this into a stalactite
 -- stalagmite_id is a table of the content ids of the four stalagmite sections, from _1 to _4.
-function subterrane:stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
+function subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
 	local pos = area:position(vi)
 	
 	local x = pos.x
