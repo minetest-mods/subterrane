@@ -102,7 +102,15 @@ function subterrane:giant_stalactite(vi, area, data, min_height, max_height, bas
 end
 
 --function to create giant 'shrooms. Cap radius works well from about 2-6
-function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius)
+--if ignore_bounds is true this function will place the mushroom even if it overlaps the edge of the voxel area.
+function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
+
+	if not ignore_bounds and 
+		not (area:containsi(vi - cap_radius - area.zstride*cap_radius) and 
+		area:containsi(vi + cap_radius + stem_height*area.ystride + area.zstride*cap_radius)) then
+			return -- mushroom overlaps the bounds of the voxel area, abort.
+	end
+
 	local pos = area:position(vi)
 	local x = pos.x
 	local y = pos.y
@@ -132,7 +140,7 @@ function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gi
 	end
 	end
 	--stem
-	for j = -1, stem_height do
+	for j = 0, stem_height do
 		local vi = area:index(x, y+j, z)
 		data[vi] = stem_material
 		if cap_radius > 3 then
