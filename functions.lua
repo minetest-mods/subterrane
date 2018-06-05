@@ -92,6 +92,14 @@ end
 -- track of the biome they belong to via an internal ID that gets changed when the biomes
 -- are re-registered, resulting in them being left assigned to the wrong biomes.
 function subterrane:override_biome(biome_def)
+
+	--Minetest 0.5 adds this "unregister biome" method
+	if minetest.unregister_biome and biome_def.name then
+		minetest.unregister_biome(biome_def.name)
+		minetest.register_biome(biome_def)
+		return
+	end	
+
 	local registered_biomes_copy = {}
 	for old_biome_key, old_biome_def in pairs(minetest.registered_biomes) do
 		registered_biomes_copy[old_biome_key] = old_biome_def
