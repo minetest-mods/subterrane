@@ -45,7 +45,7 @@ local prune_points = function(minp, maxp, points)
 end
 
 subterrane.get_column_points = function(minp, maxp, column_def)
-	column_points = get_scatter_grid(minp, grid_size, column_def)
+	local column_points = get_scatter_grid(minp, grid_size, column_def)
 	column_points = prune_points(minp, maxp, column_points)
 	return column_points
 end

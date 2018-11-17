@@ -6,6 +6,8 @@
 
 subterrane = {} --create a container for functions and constants
 
+subterrane.registered_layers = {}
+
 --grab a shorthand for the filepath of the mod
 local modpath = minetest.get_modpath(minetest.get_current_modname())
 
@@ -127,6 +129,8 @@ local default_column = {
 
 function subterrane:register_cave_layer(cave_layer_def)
 
+	table.insert(subterrane.registered_layers, cave_layer_def)
+
 	local YMIN = cave_layer_def.maximum_depth
 	local YMAX = cave_layer_def.minimum_depth
 	local BLEND = math.min(cave_layer_def.boundary_blend_range or 128, (YMAX-YMIN)/2)
@@ -165,8 +169,9 @@ function subterrane:register_cave_layer(cave_layer_def)
 		
 		local vm, data, data_param2, area = mapgen_helper.mapgen_vm_data_param2()
 
-		local nvals_cave, cave_area = mapgen_helper.perlin3d("cave", minp, maxp, np_cave) --cave noise for structure
-		local nvals_wave = mapgen_helper.perlin3d("wave", minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
+		local layer_range_name = tostring(YMIN).." to "..tostring(YMAX)
+		local nvals_cave, cave_area = mapgen_helper.perlin3d("cave "..layer_range_name, minp, maxp, np_cave) --cave noise for structure
+		local nvals_wave = mapgen_helper.perlin3d("wave "..layer_range_name, minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
 		local cave_iterator = cave_area:iterp(minp, maxp)
 		
 		local biomemap = minetest.get_mapgen_object("biomemap")
@@ -220,12 +225,10 @@ function subterrane:register_cave_layer(cave_layer_def)
 				column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points)
 			end
 			if cave_value > tcave then --if node falls within cave threshold
-				if cave_value > tcave then
-					if column_value > 0 and cave_value - column_value * column_weight < tcave then
-						data[vi] = column_node -- add a column
-					else
-						data[vi] = fill_node --hollow it out to make the cave
-					end
+				if column_value > 0 and cave_value - column_value * column_weight < tcave then
+					data[vi] = column_node -- add a column
+				else
+					data[vi] = fill_node --hollow it out to make the cave
 				end
 			elseif biome and biome._subterrane_cave_fill_node and data[vi] == c_air then
 				data[vi] = biome._subterrane_cave_fill_node
