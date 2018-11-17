@@ -157,7 +157,6 @@ function subterrane:register_cave_layer(cave_layer_def)
 			return
 		end
 		
-		--easy reference to commonly used values
 		local t_start = os.clock()
 		local y_max = maxp.y
 		local y_min = minp.y
@@ -172,14 +171,10 @@ function subterrane:register_cave_layer(cave_layer_def)
 		
 		local biomemap = minetest.get_mapgen_object("biomemap")
 		
-		--mandatory values
-		local sidelen = y_max - y_min + 1 --length of a mapblock
-
 		local column_points = nil
 		local column_weight = nil
 		if column_def then
-			column_points = subterrane.get_scatter_grid(minp, sidelen*4, column_def.minimum_count, column_def.maximum_count)
-			column_points = subterrane.prune_points(minp, maxp, column_def.min_column_radius, column_def.max_column_radius, column_points)
+			column_points = subterrane.get_column_points(minp, maxp, column_def)
 			column_weight = column_def.weight
 		end
 
@@ -276,7 +271,7 @@ function subterrane:register_cave_layer(cave_layer_def)
 			if biome then
 				local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
 				-- only check nodes near the edges of caverns
-				if math.floor(cave_value*30) == math.floor(tcave*30) then
+				if cave_value > tcave - 0.05 and cave_value < tcave + 0.05  then
 					if biome._subterrane_fill_node then
 						fill_node = biome._subterrane_fill_node
 					end					
@@ -288,12 +283,12 @@ function subterrane:register_cave_layer(cave_layer_def)
 						then --ceiling
 						biome._subterrane_ceiling_decor(area, data, ai, vi, bi, data_param2)
 					end
-					--ground
+					--floor
 					if biome._subterrane_floor_decor
 						and data[bi] ~= fill_node
 						and data[vi] == fill_node
 						and y > y_min
-						then --ground
+						then --floor
 						biome._subterrane_floor_decor(area, data, ai, vi, bi, data_param2)
 					end
 					

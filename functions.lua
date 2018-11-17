@@ -2,8 +2,9 @@
 
 --FUNCTIONS--
 
-function subterrane:vertically_consistent_random(vi, area)
-	local pos = area:position(vi)
+local grid_size = mapgen_helper.block_size * 4
+
+function subterrane:vertically_consistent_randomp(pos)
 	local next_seed = math.random(1, 1000000000)
 	math.randomseed(pos.x + pos.z * 2 ^ 8)
 	local output = math.random()
@@ -11,23 +12,9 @@ function subterrane:vertically_consistent_random(vi, area)
 	return output
 end
 
-local scatter_2d = function(min_xz, gridscale, min_output_size, max_output_size)
-	local next_seed = math.random(1, 1000000000)
-	math.randomseed(min_xz.x + min_xz.z * 2 ^ 8)
-	local count = math.random(min_output_size, max_output_size)
-	local result = {}
-	while count > 0 do
-		local point = {}
-		point.val = math.random()
-		point.x = math.random() * gridscale + min_xz.x
-		point.y = 0
-		point.z = math.random() * gridscale + min_xz.z
-		table.insert(result, point)
-		count = count - 1
-	end
-	
-	math.randomseed(next_seed)
-	return result
+function subterrane:vertically_consistent_random(vi, area)
+	local pos = area:position(vi)
+	return subterrane:vertically_consistent_randomp(pos)
 end
 
 local get_nearest_grids = function(pos_xz, gridscale)
@@ -51,11 +38,15 @@ local get_nearest_grids = function(pos_xz, gridscale)
 	return result
 end
 
-subterrane.get_scatter_grid = function(pos_xz, gridscale, min_output_size, max_output_size)
+local get_scatter_grid = function(pos_xz, gridscale, column_def)
 	local grids = get_nearest_grids(pos_xz, gridscale)
 	local points = {}
 	for _, grid in pairs(grids) do
-		for _, point in pairs(scatter_2d(grid, gridscale, min_output_size, max_output_size)) do
+		--The y value of the returned point will be the radius of the column
+		local minp = {x=grid.x, y = column_def.min_column_radius*100, z=grid.z}
+		local maxp = {x=grid.x+gridscale-1, y=column_def.max_column_radius*100, z=grid.z+gridscale-1}
+		for _, point in pairs(mapgen_helper.get_random_points(minp, maxp, column_def.minimum_count, column_def.maximum_count)) do
+			point.y = point.y / 100
 			table.insert(points, point)
 		end
 	end
@@ -63,25 +54,30 @@ subterrane.get_scatter_grid = function(pos_xz, gridscale, min_output_size, max_o
 	return points
 end
 
-subterrane.prune_points = function(minp, maxp, min_radius, max_radius, points)
+local prune_points = function(minp, maxp, points)
 	local result = {}
 	for _, point in pairs(points) do
-		local radius = min_radius + point.val * (max_radius-min_radius)
-		point.val = radius
-		if point.x > minp.x - radius and point.x < maxp.x + radius and point.z > minp.z - radius and point.z < maxp.z + radius then
+		-- point.y is the radius of the column
+		if point.x > minp.x - point.y and point.x < maxp.x + point.y and point.z > minp.z - point.y and point.z < maxp.z + point.y then
 			table.insert(result, point)
 		end
 	end
 	return result
 end
 
+subterrane.get_column_points = function(minp, maxp, column_def)
+	column_points = get_scatter_grid(minp, grid_size, column_def)
+	column_points = prune_points(minp, maxp, column_points)
+	return column_points
+end
+
 subterrane.get_point_heat = function(pos, points)
 	local heat = 0
 	for _, point in pairs(points) do
-		point.y = pos.y
-		local dist = vector.distance(pos, point)
-		if dist < point.val then
-			heat = math.max(heat, 1 - dist/point.val)
+		local axis_point = {x=point.x, y=pos.y, z=point.z}
+		local dist = vector.distance(pos, axis_point)
+		if dist < point.y then
+			heat = math.max(heat, 1 - dist/point.y)
 		end
 	end
 	return heat

@@ -76,6 +76,8 @@ Takes a voxelmanip index and the corresponding area object, and returns a pseudo
 
 This is mainly intended for use when placing stalactites and stalagmites, since in a natural cavern these two features are almost always paired with each other spatially. If you use the following test in both the floor and ceiling decoration methods:
 
+There is also a subterrane:vertically_consistent_randomp(pos) that does the same thing but takes a vector parameter.
+
 ```
 if subterrane:vertically_consistent_random(vi, area) > 0.05 then
 	--stuff
