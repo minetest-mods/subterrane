@@ -17,29 +17,8 @@ function subterrane:vertically_consistent_random(vi, area)
 	return subterrane:vertically_consistent_randomp(pos)
 end
 
-local get_nearest_grids = function(pos_xz, gridscale)
-	local half_scale = gridscale / 2
-	local grid_cell = {x = math.floor(pos_xz.x / gridscale) * gridscale, z = math.floor(pos_xz.z / gridscale) * gridscale}
-	local pos_internal = {x = pos_xz.x % gridscale, z = pos_xz.z % gridscale}
-	local result = {grid_cell}
-	local shift_x = gridscale
-	local shift_z = gridscale
-	if (pos_internal.x < half_scale) then
-		shift_x = -gridscale
-	end
-	if (pos_internal.z < half_scale) then
-		shift_z = -gridscale
-	end
-
-	table.insert(result, {x = grid_cell.x + shift_x, z = grid_cell.z + shift_z})
-	table.insert(result, {x = grid_cell.x + shift_x, z = grid_cell.z})
-	table.insert(result, {x = grid_cell.x, z = grid_cell.z + shift_z})
-
-	return result
-end
-
 local get_scatter_grid = function(pos_xz, gridscale, column_def)
-	local grids = get_nearest_grids(pos_xz, gridscale)
+	local grids = mapgen_helper.get_nearest_regions(pos_xz, gridscale)
 	local points = {}
 	for _, grid in pairs(grids) do
 		--The y value of the returned point will be the radius of the column
