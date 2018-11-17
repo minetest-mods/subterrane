@@ -81,12 +81,6 @@ subterrane.default_perlin_wave = {
 	persist = 0.63
 }
 
-local data = {}
-local data_param2 = {}
-
-local nvals_cave_buffer = {}
-local nvals_wave_buffer = {}
-
 -- cave_layer_def
 --{
 --	minimum_depth = -- required, the highest elevation this cave layer will be generated in.
@@ -144,10 +138,6 @@ function subterrane:register_cave_layer(cave_layer_def)
 	local yblmin = YMIN + BLEND * 1.5
 	local yblmax = YMAX - BLEND * 1.5	
 	
-	-- noise objects
-	local nobj_cave = nil
-	local nobj_wave = nil
-	
 	local column_def = cave_layer_def.columns
 	local c_column
 
@@ -167,39 +157,23 @@ function subterrane:register_cave_layer(cave_layer_def)
 			return
 		end
 		
-		-- Create a table of biome ids for use with the biomemap.
-		if not subterrane.biome_ids then
-			subterrane.biome_ids = {}
-			for name, desc in pairs(minetest.registered_biomes) do
-				local i = minetest.get_biome_id(desc.name)
-				subterrane.biome_ids[i] = desc.name
-			end
-		end
-
 		--easy reference to commonly used values
 		local t_start = os.clock()
-		local x_max = maxp.x
 		local y_max = maxp.y
-		local z_max = maxp.z
-		local x_min = minp.x
 		local y_min = minp.y
-		local z_min = minp.z
 		
-		print ("[subterrane] chunk minp ("..x_min.." "..y_min.." "..z_min..")") --tell people you are generating a chunk
+		minetest.log("info", "[subterrane] chunk minp " .. minetest.pos_to_string(minp)) --tell people you are generating a chunk
 		
-		local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		vm:get_data(data)
-		vm:get_param2_data(data_param2)
-	
+		local vm, data, data_param2, area = mapgen_helper.mapgen_vm_data_param2()
+
+		local nvals_cave, cave_area = mapgen_helper.perlin3d("cave", minp, maxp, np_cave) --cave noise for structure
+		local nvals_wave = mapgen_helper.perlin3d("wave", minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
+		local cave_iterator = cave_area:iterp(minp, maxp)
+		
 		local biomemap = minetest.get_mapgen_object("biomemap")
 		
 		--mandatory values
-		local sidelen = x_max - x_min + 1 --length of a mapblock
-		local chunk_lengths = {x = sidelen, y = sidelen, z = sidelen} --table of chunk edges
-		local chunk_lengths2D = {x = sidelen, y = sidelen, z = 1}
-		local minposxyz = {x = x_min, y = y_min, z = z_min} --bottom corner
-		local minposxz = {x = x_min, y = z_min} --2D bottom corner
+		local sidelen = y_max - y_min + 1 --length of a mapblock
 
 		local column_points = nil
 		local column_weight = nil
@@ -208,181 +182,146 @@ function subterrane:register_cave_layer(cave_layer_def)
 			column_points = subterrane.prune_points(minp, maxp, column_def.min_column_radius, column_def.max_column_radius, column_points)
 			column_weight = column_def.weight
 		end
-			
-		nobj_cave = nobj_cave or minetest.get_perlin_map(np_cave, chunk_lengths)
-		nobj_wave = nobj_wave or minetest.get_perlin_map(np_wave, chunk_lengths)
-	
-		local nvals_cave = nobj_cave:get3dMap_flat(minposxyz, nvals_cave_buffer) --cave noise for structure
-		local nvals_wave = nobj_wave:get3dMap_flat(minposxyz, nvals_wave_buffer) --wavy structure of cavern ceilings and floors
-		
-		local index_3d = 1 --3D node index
-		local index_2d = 1 --2D node index
-		
-		for z = z_min, z_max do -- for each xy plane progressing northwards
-			--structure loop, hollows out the cavern
-			for y = y_min, y_max do -- for each x row progressing upwards
-				local tcave --declare variable
-				--determine the overall cave threshold
-				if y < yblmin then
-					tcave = TCAVE + ((yblmin - y) / BLEND) ^ 2
-				elseif y > yblmax then
-					tcave = TCAVE + ((y - yblmax) / BLEND) ^ 2
-				else
-					tcave = TCAVE
-				end
-	
-				local vi = area:index(x_min, y, z) --current node index
-				for x = x_min, x_max do -- for each node do
-	
-					local biome_name = subterrane.biome_ids[biomemap[index_2d]]
-					local biome = minetest.registered_biomes[biome_name]
 
-					if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
-						local override_name = biome._subterrane_override_under_sea_biome
-						if override_name then
-							biome = minetest.registered_biomes[override_name]
-						else
-							biome = nil
-						end
-					end
-					
-					local fill_node = c_air
-					local column_node = c_column
-					if biome then
-						if biome._subterrane_fill_node then
-							fill_node = biome._subterrane_fill_node
-						end
-						if biome._subterrane_column_node then
-							column_node = biome._subterrane_column_node
-						end
-					end
-	
-					local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
-					local column_value = 0
-					if column_def then
-						column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points)
-					end
-					if cave_value > tcave then --if node falls within cave threshold
-						if cave_value > tcave then
-							if column_value > 0 and cave_value - column_value * column_weight < tcave then
-								data[vi] = column_node -- add a column
-							else
-								data[vi] = fill_node --hollow it out to make the cave
-							end
-						end
-					elseif biome and biome._subterrane_cave_fill_node and data[vi] == c_air then
-						data[vi] = biome._subterrane_cave_fill_node
-					end
-					
-					if biome and biome._subterrane_mitigate_lava and cave_value > tcave - 0.1 then -- Eliminate nearby lava to keep it from spilling in
-						if data[vi] == c_lava then
-							data[vi] = c_obsidian
-						end
-					end
-					--increment indices
-					index_3d = index_3d + 1
-					index_2d = index_2d + 1
-					vi = vi + 1
-				end
-				index_2d = index_2d - sidelen --shift the 2D index back
+		for vi, x, y, z in area:iterp_xyz(minp, maxp) do
+			local index_3d = cave_iterator()
+			local index_2d = mapgen_helper.index2d(minp, maxp, x, z)
+			
+			local tcave --declare variable
+			--determine the overall cave threshold
+			if y < yblmin then
+				tcave = TCAVE + ((yblmin - y) / BLEND) ^ 2
+			elseif y > yblmax then
+				tcave = TCAVE + ((y - yblmax) / BLEND) ^ 2
+			else
+				tcave = TCAVE
 			end
-			index_2d = index_2d + sidelen --shift the 2D index up a layer
-		end
-		
-		local index_3d = 1 --3D node index
-		local index_2d = 1 --2D node index
 	
-		for z = z_min, z_max do -- for each xy plane progressing northwards
-	
-			--decoration loop, places nodes on floor and ceiling
-			for y = y_min, y_max do -- for each x row progressing upwards
-				local tcave --same as above
-				if y < yblmin then
-					tcave = TCAVE + ((yblmin - y) / BLEND) ^ 2
-				elseif y > yblmax then
-					tcave = TCAVE + ((y - yblmax) / BLEND) ^ 2
+			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+
+			if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
+				local override_name = biome._subterrane_override_under_sea_biome
+				if override_name then
+					biome = minetest.registered_biomes[override_name]
 				else
-					tcave = TCAVE
+					biome = nil
 				end
-				local vi = area:index(x_min, y, z)
-				for x = x_min, x_max do -- for each node do
+			end
+			
+			local fill_node = c_air
+			local column_node = c_column
+			if biome then
+				if biome._subterrane_fill_node then
+					fill_node = biome._subterrane_fill_node
+				end
+				if biome._subterrane_column_node then
+					column_node = biome._subterrane_column_node
+				end
+			end
+
+			local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
+			local column_value = 0
+			if column_def then
+				column_value = subterrane.get_point_heat({x=x, y=y, z=z}, column_points)
+			end
+			if cave_value > tcave then --if node falls within cave threshold
+				if cave_value > tcave then
+					if column_value > 0 and cave_value - column_value * column_weight < tcave then
+						data[vi] = column_node -- add a column
+					else
+						data[vi] = fill_node --hollow it out to make the cave
+					end
+				end
+			elseif biome and biome._subterrane_cave_fill_node and data[vi] == c_air then
+				data[vi] = biome._subterrane_cave_fill_node
+			end
+			
+			if biome and biome._subterrane_mitigate_lava and cave_value > tcave - 0.1 then -- Eliminate nearby lava to keep it from spilling in
+				if data[vi] == c_lava then
+					data[vi] = c_obsidian
+				end
+			end
+		end
+	
+		cave_iterator = cave_area:iterp(minp, maxp) -- reset this iterator
+		for vi, x, y, z in area:iterp_xyz(minp, maxp) do
+			local index_3d = cave_iterator()
+			local index_2d = mapgen_helper.index2d(minp, maxp, x, z)
+			
+			local ai = vi + area.ystride
+			local bi = vi - area.ystride
+
+			local tcave --same as above
+			if y < yblmin then
+				tcave = TCAVE + ((yblmin - y) / BLEND) ^ 2
+			elseif y > yblmax then
+				tcave = TCAVE + ((y - yblmax) / BLEND) ^ 2
+			else
+				tcave = TCAVE
+			end
 				
-					local biome_name = subterrane.biome_ids[biomemap[index_2d]]
-					local biome = minetest.registered_biomes[biome_name]
-					local fill_node = c_air
-					local cave_fill_node = c_air
+			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			local fill_node = c_air
+			local cave_fill_node = c_air
+			
+			if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
+				local override_name = biome._subterrane_override_under_sea_biome
+				if override_name then
+					biome = minetest.registered_biomes[override_name]
+				else
+					biome = nil
+				end
+			end
+
+			if biome then
+				local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
+				-- only check nodes near the edges of caverns
+				if math.floor(cave_value*30) == math.floor(tcave*30) then
+					if biome._subterrane_fill_node then
+						fill_node = biome._subterrane_fill_node
+					end					
+					--ceiling
+					if biome._subterrane_ceiling_decor
+						and data[ai] ~= fill_node
+						and data[vi] == fill_node
+						and y < y_max
+						then --ceiling
+						biome._subterrane_ceiling_decor(area, data, ai, vi, bi, data_param2)
+					end
+					--ground
+					if biome._subterrane_floor_decor
+						and data[bi] ~= fill_node
+						and data[vi] == fill_node
+						and y > y_min
+						then --ground
+						biome._subterrane_floor_decor(area, data, ai, vi, bi, data_param2)
+					end
 					
-					if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
-						local override_name = biome._subterrane_override_under_sea_biome
-						if override_name then
-							biome = minetest.registered_biomes[override_name]
-						else
-							biome = nil
+				elseif cave_value <= tcave then --if node falls outside cave threshold
+					-- decorate other "native" caves and tunnels
+					if biome._subterrane_cave_fill_node then
+						cave_fill_node = biome._subterrane_cave_fill_node
+						if data[vi] == c_air then
+							data[vi] = cave_fill_node
 						end
 					end
-	
-					if biome then
-						local cave_value = (nvals_cave[index_3d] + nvals_wave[index_3d])/2
-						-- only check nodes near the edges of caverns
-						if math.floor(cave_value*30) == math.floor(tcave*30) then
-							if biome._subterrane_fill_node then
-								fill_node = biome._subterrane_fill_node
-							end					
-							--ceiling
-							local ai = area:index(x,y+1,z) --above index
-							local bi = area:index(x,y-1,z) --below index
-													
-							if biome._subterrane_ceiling_decor
-								and data[ai] ~= fill_node
-								and data[vi] == fill_node
-								and y < y_max
-								then --ceiling
-								biome._subterrane_ceiling_decor(area, data, ai, vi, bi, data_param2)
-							end
-							--ground
-							if biome._subterrane_floor_decor
-								and data[bi] ~= fill_node
-								and data[vi] == fill_node
-								and y > y_min
-								then --ground
-								biome._subterrane_floor_decor(area, data, ai, vi, bi, data_param2)
-							end
-							
-						elseif cave_value <= tcave then --if node falls outside cave threshold
-							-- decorate other "native" caves and tunnels
-							if biome._subterrane_cave_fill_node then
-								cave_fill_node = biome._subterrane_cave_fill_node
-								if data[vi] == c_air then
-									data[vi] = cave_fill_node
-								end
-							end
-	
-							local ai = area:index(x,y+1,z) --above index
-							local bi = area:index(x,y-1,z) --below index
-													
-							if biome._subterrane_cave_ceiling_decor
-								and data[ai] ~= cave_fill_node
-								and data[vi] == cave_fill_node
-								and y < y_max
-								then --ceiling
-								biome._subterrane_cave_ceiling_decor(area, data, ai, vi, bi, data_param2)
-							end
-							if biome._subterrane_cave_floor_decor
-								and data[bi] ~= cave_fill_node
-								and data[vi] == cave_fill_node
-								and y > y_min
-								then --ground
-								biome._subterrane_cave_floor_decor(area, data, ai, vi, bi, data_param2)
-							end
-						end	
+											
+					if biome._subterrane_cave_ceiling_decor
+						and data[ai] ~= cave_fill_node
+						and data[vi] == cave_fill_node
+						and y < y_max
+						then --ceiling
+						biome._subterrane_cave_ceiling_decor(area, data, ai, vi, bi, data_param2)
 					end
-					index_3d = index_3d + 1
-					index_2d = index_2d + 1
-					vi = vi + 1
-				end
-				index_2d = index_2d - sidelen --shift the 2D index back
+					if biome._subterrane_cave_floor_decor
+						and data[bi] ~= cave_fill_node
+						and data[vi] == cave_fill_node
+						and y > y_min
+						then --ground
+						biome._subterrane_cave_floor_decor(area, data, ai, vi, bi, data_param2)
+					end
+				end	
 			end
-			index_2d = index_2d + sidelen --shift the 2D index up a layer
 		end
 		
 		--send data back to voxelmanip
@@ -391,11 +330,13 @@ function subterrane:register_cave_layer(cave_layer_def)
 		--calc lighting
 		vm:set_lighting({day = 0, night = 0})
 		vm:calc_lighting()
+		
+		vm:update_liquids()
 		--write it to world
 		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
-		print ("[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
 	end)
 end
 
@@ -409,84 +350,52 @@ function subterrane:register_cave_decor(minimum_depth, maximum_depth)
 			return
 		end
 		
-		-- Create a table of biome ids for use with the biomemap.
-		if not subterrane.biome_ids then
-			subterrane.biome_ids = {}
-			for name, desc in pairs(minetest.registered_biomes) do
-				local i = minetest.get_biome_id(desc.name)
-				subterrane.biome_ids[i] = desc.name
-			end
-		end
-	
 		--easy reference to commonly used values
 		local t_start = os.clock()
-		local x_max = maxp.x
 		local y_max = maxp.y
-		local z_max = maxp.z
-		local x_min = minp.x
 		local y_min = minp.y
-		local z_min = minp.z
 		
-		print ("[subterrane] chunk minp ("..x_min.." "..y_min.." "..z_min..")") --tell people you are generating a chunk
+		minetest.log("info", "[subterrane] chunk minp " .. minetest.pos_to_string(minp)) --tell people you are generating a chunk
 		
-		local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		vm:get_data(data)
-		vm:get_param2_data(data_param2)
-	
+		local vm, data, data_param2, area = mapgen_helper.mapgen_vm_data_param2()
 		local biomemap = minetest.get_mapgen_object("biomemap")
 		
-		local sidelen = x_max - x_min + 1 --length of a mapblock
-	
-		local index_3d = 1 --3D node index
-		local index_2d = 1 --2D node index
-		
-		for z = z_min, z_max do -- for each xy plane progressing northwards
+		for vi, x, y, z in area:iterp_xyz(minp, maxp) do
 			--decoration loop, places nodes on floor and ceiling
-			for y = y_min, y_max do -- for each x row progressing upwards
-				local vi = area:index(x_min, y, z)
-				for x = x_min, x_max do -- for each node do
-				
-					local biome_name = subterrane.biome_ids[biomemap[index_2d]]
-					local biome = minetest.registered_biomes[biome_name]
-					local cave_fill_node = c_air
-	
-					if biome then
-						-- decorate "native" caves and tunnels
-						if biome._subterrane_cave_fill_node then
-							cave_fill_node = biome._subterrane_cave_fill_node
-							if data[vi] == c_air then
-								data[vi] = cave_fill_node
-							end
-						end
+			local index_2d = mapgen_helper.index2d(minp, maxp, x, z)
+			local ai = vi + area.ystride
+			local bi = vi - area.ystride
+		
+			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			local cave_fill_node = c_air
 
-						local ai = area:index(x,y+1,z) --above index
-						local bi = area:index(x,y-1,z) --below index
-
-						if biome._subterrane_cave_ceiling_decor
-							and data[ai] ~= cave_fill_node
-							and data[vi] == cave_fill_node
-							and y < y_max
-							then --ceiling
-							biome._subterrane_cave_ceiling_decor(area, data, ai, vi, bi, data_param2)
-						end
-						--ground
-						if biome._subterrane_cave_floor_decor
-							and data[bi] ~= cave_fill_node
-							and data[vi] == cave_fill_node
-							and y > y_min
-							then --ground
-							biome._subterrane_cave_floor_decor(area, data, ai, vi, bi, data_param2)
-						end
-					end	
-					index_3d = index_3d + 1
-					index_2d = index_2d + 1
-					vi = vi + 1
+			if biome then
+				-- decorate "native" caves and tunnels
+				if biome._subterrane_cave_fill_node then
+					cave_fill_node = biome._subterrane_cave_fill_node
+					if data[vi] == c_air then
+						data[vi] = cave_fill_node
+					end
 				end
-				index_2d = index_2d - sidelen --shift the 2D index back
-			end
-			index_2d = index_2d + sidelen --shift the 2D index up a layer
+
+				if biome._subterrane_cave_ceiling_decor
+					and data[ai] ~= cave_fill_node
+					and data[vi] == cave_fill_node
+					and y < y_max
+					then --ceiling
+					biome._subterrane_cave_ceiling_decor(area, data, ai, vi, bi, data_param2)
+				end
+				--ground
+				if biome._subterrane_cave_floor_decor
+					and data[bi] ~= cave_fill_node
+					and data[vi] == cave_fill_node
+					and y > y_min
+					then --ground
+					biome._subterrane_cave_floor_decor(area, data, ai, vi, bi, data_param2)
+				end
+			end	
 		end
+
 		
 		--send data back to voxelmanip
 		vm:set_data(data)
@@ -498,8 +407,8 @@ function subterrane:register_cave_decor(minimum_depth, maximum_depth)
 		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
-		print ("[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
 	end)
 end
 
-print("[Subterrane] loaded!")
+minetest.log("info", "[Subterrane] loaded!")
