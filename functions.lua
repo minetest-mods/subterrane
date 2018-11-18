@@ -17,37 +17,24 @@ function subterrane:vertically_consistent_random(vi, area)
 	return subterrane:vertically_consistent_randomp(pos)
 end
 
-local get_scatter_grid = function(pos_xz, gridscale, column_def)
-	local grids = mapgen_helper.get_nearest_regions(pos_xz, gridscale)
+subterrane.get_column_points = function(minp, maxp, column_def)
+	local grids = mapgen_helper.get_nearest_regions(minp, grid_size)
 	local points = {}
 	for _, grid in pairs(grids) do
 		--The y value of the returned point will be the radius of the column
 		local minp = {x=grid.x, y = column_def.min_column_radius*100, z=grid.z}
-		local maxp = {x=grid.x+gridscale-1, y=column_def.max_column_radius*100, z=grid.z+gridscale-1}
+		local maxp = {x=grid.x+grid_size-1, y=column_def.max_column_radius*100, z=grid.z+grid_size-1}
 		for _, point in pairs(mapgen_helper.get_random_points(minp, maxp, column_def.minimum_count, column_def.maximum_count)) do
 			point.y = point.y / 100
-			table.insert(points, point)
+			if point.x > minp.x - point.y
+				and point.x < maxp.x + point.y
+				and point.z > minp.z - point.y
+				and point.z < maxp.z + point.y then
+				table.insert(points, point)
+			end			
 		end
 	end
-
 	return points
-end
-
-local prune_points = function(minp, maxp, points)
-	local result = {}
-	for _, point in pairs(points) do
-		-- point.y is the radius of the column
-		if point.x > minp.x - point.y and point.x < maxp.x + point.y and point.z > minp.z - point.y and point.z < maxp.z + point.y then
-			table.insert(result, point)
-		end
-	end
-	return result
-end
-
-subterrane.get_column_points = function(minp, maxp, column_def)
-	local column_points = get_scatter_grid(minp, grid_size, column_def)
-	column_points = prune_points(minp, maxp, column_points)
-	return column_points
 end
 
 subterrane.get_point_heat = function(pos, points)

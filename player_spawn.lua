@@ -33,19 +33,17 @@ end
 
 -- Spawn player underground
 function spawnplayer(cave_layer_def, player, ydepth)
-	
+
 	local YMIN = cave_layer_def.maximum_depth
 	local YMAX = cave_layer_def.minimum_depth
-	local BLEND = math.min(cave_layer_def.boundary_blend_range or 128, (YMIN-YMAX)/2)
+	local BLEND = math.min(cave_layer_def.boundary_blend_range or 128, (YMAX-YMIN)/2)
 	local TCAVE = cave_layer_def.cave_threshold or 0.5
 
-	-- 3D noise for cave
 	local np_cave = cave_layer_def.perlin_cave or subterrane.default_perlin_cave
-	-- 3D noise for wave
 	local np_wave = cave_layer_def.perlin_wave or subterrane.default_perlin_wave
-
+	
 	local yblmin = YMIN + BLEND * 1.5
-	local yblmax = YMAX - BLEND * 1.5
+	local yblmax = YMAX - BLEND * 1.5	
 	
 	local layer_range_name = tostring(YMIN).." to "..tostring(YMAX)
 
@@ -59,11 +57,13 @@ function spawnplayer(cave_layer_def, player, ydepth)
 		
 		local nvals_cave, cave_area = mapgen_helper.perlin3d("cave "..layer_range_name, minp, maxp, np_cave) --cave noise for structure
 		local nvals_wave = mapgen_helper.perlin3d("wave "..layer_range_name, minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
-	
-		for vi, x, y, z in cave_area:iterp_xyz(minp, maxp) do
 		
-			local tcave --declare variable
-			--determine the overall cave threshold
+		for vi, x, y, z in cave_area:iterp_xyz({x=minp.x, y=minp.y+1, z=minp.z}, {x=maxp.x, y=maxp.y-1, z=maxp.z}) do
+		
+			local ai = vi + cave_area.ystride
+			local bi = vi - cave_area.ystride
+
+			local tcave
 			if y < yblmin then
 				tcave = TCAVE + ((yblmin - y) / BLEND) ^ 2
 			elseif y > yblmax then
@@ -71,21 +71,23 @@ function spawnplayer(cave_layer_def, player, ydepth)
 			else
 				tcave = TCAVE
 			end
-			
-			local bi = vi - cave_area.ystride
-			
-			if nvals_cave[bi] ~= nil and nvals_wave[bi] ~= nil and (nvals_cave[vi] + nvals_wave[vi])/2 > tcave and (nvals_cave[bi] + nvals_wave[bi])/2 < tcave then
-				--if node falls within cave threshold but the node below does not, we have a place the player can stand
+				
+			local cave_value_above = (nvals_cave[ai] + nvals_wave[ai])/2
+			local cave_value = (nvals_cave[vi] + nvals_wave[vi])/2
+			local cave_value_below = (nvals_cave[bi] + nvals_wave[bi])/2
+			if cave_value > tcave and cave_value_above > tcave and cave_value_below < tcave-0.01 then -- Try to ensure there's ground underneath the player
 				table.insert(options, {x=x, y=y+1, z=z})
 			end
 		end
+
 		if table.getn(options) > 0 then
-			local spawnpoint = options[ math.random( table.getn(options) ) ]
+			local choice = math.random( table.getn(options) )
+			local spawnpoint = options[ choice ]
 			minetest.log("action", "[subterrane] spawning player " .. minetest.pos_to_string(spawnpoint))
 			player:setpos(spawnpoint)
 			return true
 		end
-	end
+	end	
 	
 	return false
 end

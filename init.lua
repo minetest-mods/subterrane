@@ -405,7 +405,11 @@ function subterrane:register_cave_decor(minimum_depth, maximum_depth)
 		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
-		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		if chunk_generation_time < 1000 then
+			minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		else
+			minetest.log("warning", "[subterrane] took "..chunk_generation_time.." ms to generate a map block")
+		end
 	end)
 end
 
