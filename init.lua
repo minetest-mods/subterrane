@@ -329,12 +329,16 @@ function subterrane:register_cave_layer(cave_layer_def)
 		vm:set_lighting({day = 0, night = 0})
 		vm:calc_lighting()
 		
-		vm:update_liquids()
 		--write it to world
 		vm:write_to_map()
 	
 		local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
-		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		if chunk_generation_time < 1000 then
+			minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		else
+			minetest.log("warning", "[subterrane] took "..chunk_generation_time.." ms to generate map block "
+				.. minetest.pos_to_string(minp) .. minetest.pos_to_string(maxp))
+		end
 	end)
 end
 

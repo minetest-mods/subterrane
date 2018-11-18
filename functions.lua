@@ -20,11 +20,11 @@ end
 subterrane.get_column_points = function(minp, maxp, column_def)
 	local grids = mapgen_helper.get_nearest_regions(minp, grid_size)
 	local points = {}
-	for _, grid in pairs(grids) do
+	for _, grid in ipairs(grids) do
 		--The y value of the returned point will be the radius of the column
 		local minp = {x=grid.x, y = column_def.min_column_radius*100, z=grid.z}
 		local maxp = {x=grid.x+grid_size-1, y=column_def.max_column_radius*100, z=grid.z+grid_size-1}
-		for _, point in pairs(mapgen_helper.get_random_points(minp, maxp, column_def.minimum_count, column_def.maximum_count)) do
+		for _, point in ipairs(mapgen_helper.get_random_points(minp, maxp, column_def.minimum_count, column_def.maximum_count)) do
 			point.y = point.y / 100
 			if point.x > minp.x - point.y
 				and point.x < maxp.x + point.y
@@ -39,11 +39,12 @@ end
 
 subterrane.get_point_heat = function(pos, points)
 	local heat = 0
-	for _, point in pairs(points) do
+	for _, point in ipairs(points) do
 		local axis_point = {x=point.x, y=pos.y, z=point.z}
+		local radius = point.y
 		local dist = vector.distance(pos, axis_point)
-		if dist < point.y then
-			heat = math.max(heat, 1 - dist/point.y)
+		if dist < radius then
+			heat = math.max(heat, 1 - dist/radius)
 		end
 	end
 	return heat
