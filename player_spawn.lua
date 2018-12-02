@@ -31,7 +31,7 @@ function subterrane:register_cave_spawn(cave_layer_def, start_depth)
 	end)
 end
 
--- Spawn player underground
+-- Spawn player underground in a giant cavern
 function spawnplayer(cave_layer_def, player, ydepth)
 
 	local YMIN = cave_layer_def.maximum_depth

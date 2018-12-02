@@ -42,9 +42,14 @@ subterrane.get_point_heat = function(pos, points)
 	for _, point in ipairs(points) do
 		local axis_point = {x=point.x, y=pos.y, z=point.z}
 		local radius = point.y
-		local dist = vector.distance(pos, axis_point)
-		if dist < radius then
-			heat = math.max(heat, 1 - dist/radius)
+		if (pos.x >= axis_point.x-radius and pos.x <= axis_point.x+radius
+			and pos.z >= axis_point.z-radius and pos.z <= axis_point.z+radius) then
+			
+			local dist = vector.distance(pos, axis_point)
+			if dist < radius then
+				heat = math.max(heat, 1 - dist/radius)
+			end
+
 		end
 	end
 	return heat
