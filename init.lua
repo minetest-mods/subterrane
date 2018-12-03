@@ -66,7 +66,7 @@ local disable_mapgen_caverns = function()
 end
 disable_mapgen_caverns()
 
-
+local c_obsidian = minetest.get_content_id("default:obsidian")
 
 local c_air = minetest.get_content_id("air")
 local c_water = minetest.get_content_id("default:water_source")
@@ -74,7 +74,6 @@ local c_lava = minetest.get_content_id("default:lava_source")
 local c_water_flowing = minetest.get_content_id("default:water_flowing")
 local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
 local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flowing] = true, [c_lava_flowing] = true}
-
 
 -- Column stuff
 ----------------------------------------------------------------------------------
@@ -153,7 +152,6 @@ local clear_node_arrays = function()
 	for k, _ in pairs(cavern_ceiling_nodes) do
 		cavern_ceiling_nodes[k] = nil
 	end
-	minetest.debug(table.getn(cavern_ceiling_nodes))
 	for k, _ in pairs(cavern_floor_nodes) do
 		cavern_floor_nodes[k] = nil
 	end
@@ -187,8 +185,9 @@ end
 --	perlin_wave = -- optional, a 3D perlin noise definition table that's averaged with the cave noise to add more horizontal surfaces (squash its spread on the y axis relative to perlin_cave to accomplish this)
 --	perlin_warren_area = -- optional, a 3D perlin noise definition table for defining what places warrens form in
 --	perlin_warrens = -- optional, a 3D perlin noise definition table for defining the warrens
+--	solidify_lava = -- when set to true, lava near the edges of caverns is converted into obsidian to prevent it from spilling in.
 --	columns = -- optional, a column_def table for producing truly enormous dripstone formations. See below for definition. Set to nil to disable columns.
---	decorate = -- optional, a function that is given a table and a variety of other mapgen information so that it can place custom decorations on floors and ceilings.
+--	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings.
 --}
 
 -- column_def
@@ -213,6 +212,8 @@ subterrane.register_layer = function(cave_layer_def)
 	local warren_area_variability_threshold = cave_layer_def.warren_region_variability_threshold or 0.25 -- determines how much of the warren_area_threshold volume actually has warrens in it
 	local warren_threshold = cave_layer_def.warren_threshold or 0.25 -- determines narrowness of warrens themselves
 
+	local solidify_lava = cave_layer_def.solidify_lava
+	
 	local np_cave = cave_layer_def.perlin_cave or defaults.perlin_cave
 	local np_wave = cave_layer_def.perlin_wave or defaults.perlin_wave
 	local np_warren_area = cave_layer_def.perlin_warren_area or defaults.perlin_warren_area
@@ -311,6 +312,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				previous_node_state = inside_cavern
 			end
 		end
+		
+		-- If there's lava near the edges of the cavern, solidify it.
+		if solidify_lava and cave_value > cave_local_threshold - 0.05 and data[vi] == c_lava then
+			data[vi] = c_obsidian
+		end
 			
 		--borderlands of a giant cavern, possible warren area
 		if cave_value <= cave_local_threshold and cave_value > warren_area_threshold then
@@ -323,6 +329,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			local warren_area_value = nvals_warren_area[vi3d]
 			if warren_area_value > warren_area_variability_threshold then
 				-- we're in a warren-containing area
+				
+				if solidify_lava and data[vi] == c_lava then
+					data[vi] = c_obsidian					
+				end
+				
 				if warrens_uninitialized then
 					nvals_warrens = mapgen_helper.perlin3d("subterrane:warrens", minp, maxp, np_warrens) --spongey warrens
 					warrens_uninitialized = false
@@ -372,7 +383,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				table.insert(column_nodes, vi)
 			elseif previous_node_state == inside_ground and current_node_is_open then
 				-- we just entered a tunnel from below
-				table.insert(tunnel_floor_nodes, vi)
+				table.insert(tunnel_floor_nodes, vi-area.ystride)
 				previous_node_state = inside_tunnel
 			elseif previous_node_state ~= inside_ground and not current_node_is_open then
 				if previous_node_state == inside_cavern then

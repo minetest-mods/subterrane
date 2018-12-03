@@ -36,12 +36,10 @@ defaults.perlin_warrens = {
 	persist = 0.67
 }
 
-local c_stone = minetest.get_content_id("default:stone")
-
 defaults.column_def = {
 	maximum_radius = 10,
 	minimum_radius = 4,
-	node = c_stone,
+	node = minetest.get_content_id("default:stone"),
 	weight = 0.25,
 	maximum_count = 50,
 	minimum_count = 0,

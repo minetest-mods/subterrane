@@ -5,8 +5,8 @@
 local grid_size = mapgen_helper.block_size * 4
 
 function subterrane:vertically_consistent_randomp(pos)
-	local next_seed = math.random(1, 1000000000)
-	math.randomseed(pos.x + pos.z * 2 ^ 8)
+	local next_seed = math.random(1, 1000000000000)
+	math.randomseed(minetest.hash_node_position({x=pos.x, y=0, z=pos.z}))
 	local output = math.random()
 	math.randomseed(next_seed)
 	return output
