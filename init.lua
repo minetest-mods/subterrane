@@ -187,6 +187,7 @@ end
 --	perlin_warrens = -- optional, a 3D perlin noise definition table for defining the warrens
 --	solidify_lava = -- when set to true, lava near the edges of caverns is converted into obsidian to prevent it from spilling in.
 --	columns = -- optional, a column_def table for producing truly enormous dripstone formations. See below for definition. Set to nil to disable columns.
+--	double_frequency = -- when set to true, uses the absolute value of the cavern field to determine where to place caverns instead. This effectively doubles the number of large non-connected caverns.
 --	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings.
 --}
 
@@ -234,6 +235,8 @@ subterrane.register_layer = function(cave_layer_def)
 		column_def.minimum_count = column_def.minimum_count or defaults.column_def.minimum_count
 	end
 
+	local double_frequency = cave_layer_def.double_frequency
+	
 	local decorate = cave_layer_def.decorate
 	
 -- On generated
@@ -266,6 +269,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	local column_points = nil
 	local column_weight = nil
 	
+	-- This information might be of use to the decorate function, but an entire node list
+	-- is less likely to be of use so just store a bool to save on memory.
+	node_arrays.contains_cavern = false
+	node_arrays.contains_warren = false
+	
 	for vi, x, y, z in area:iterp_yxz(minp, maxp) do
 		local vi3d = cave_iterator() -- for use with noise data
 		
@@ -288,6 +296,21 @@ minetest.register_on_generated(function(minp, maxp, seed)
 
 		local cave_value = (nvals_cave[vi3d] + nvals_wave[vi3d])/2
 		
+		if double_frequency then
+			if cave_value < 0 then
+				cave_value = -cave_value
+				-- May be useful to the decorate function if it wants to place two
+				-- completely distinct types of cavern decor in alternating caverns
+				-- in theory this could give inconsistent results if the positive and
+				-- negative caverns are close enough to touch the same map chunk,
+				-- but this is unlikely for plausible cavern settings - you'd have
+				-- almost entirely open space in that case.
+				node_arrays.contains_negative_zone = true
+			else
+				node_arrays.contains_negative_zone = false
+			end			
+		end
+		
 		-- inside a giant cavern
 		if cave_value > cave_local_threshold then
 
@@ -305,6 +328,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				previous_node_state = inside_column
 			else
 				data[vi] = c_air --hollow it out to make the cave
+				node_arrays.contains_cavern = true
 				if previous_node_state == inside_ground then
 					-- we just entered the cavern from below
 					table.insert(cavern_floor_nodes, vi - area.ystride)
@@ -362,6 +386,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 						previous_node_state = inside_column
 					else
 						data[vi] = c_air --hollow it out to make the cave
+						node_arrays.contains_warren = true
 						if previous_node_state == inside_ground then
 							-- we just entered the warren from below
 							table.insert(warren_floor_nodes, vi - area.ystride)
