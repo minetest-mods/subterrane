@@ -43,28 +43,18 @@ minetest.register_node("subterrane:wet_flowstone", {
 	sounds = default.node_sound_stone_defaults(),
 })
 
-local dry_stalagmite_ids = {
-	minetest.get_content_id("subterrane:dry_stal_1"), -- thinnest
-	minetest.get_content_id("subterrane:dry_stal_2"),
-	minetest.get_content_id("subterrane:dry_stal_3"),
-	minetest.get_content_id("subterrane:dry_stal_4"), -- thickest
-}
-
-local wet_stalagmite_ids = {
-	minetest.get_content_id("subterrane:wet_stal_1"), -- thinnest
-	minetest.get_content_id("subterrane:wet_stal_2"),
-	minetest.get_content_id("subterrane:wet_stal_3"),
-	minetest.get_content_id("subterrane:wet_stal_4"), -- thickest
-}
-
-function subterrane:stalagmite(vi, area, data, param2_data, param2, height, is_wet)
-	if is_wet then
-		subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, wet_stalagmite_ids)
-	else
-		subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, dry_stalagmite_ids)	
-	end
 end
 
+function subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
+	subterrane.stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
+end
+
+function subterrane:giant_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+	subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+end
+
+function subterrane:giant_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+	subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
 end
 
 -------------------------------------------------------------------------------------

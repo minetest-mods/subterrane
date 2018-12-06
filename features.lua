@@ -6,7 +6,7 @@ local c_air = minetest.get_content_id("air")
 local x_disp = 0.125
 local z_disp = 0.125
 
-local stal_on_place = function(itemstack, placer, pointed_thing, itemname)
+local stal_on_place = function(itemstack, placer, pointed_thing)
 	local pt = pointed_thing
 	-- check if pointing at a node
 	if not pt then
@@ -42,7 +42,7 @@ local stal_on_place = function(itemstack, placer, pointed_thing, itemname)
 	end
 
 	-- add the node and remove 1 item from the itemstack
-	minetest.add_node(pt.above, {name = itemname, param2 = new_param2})
+	minetest.add_node(pt.above, {name = itemstack:get_name(), param2 = new_param2})
 	if not minetest.setting_getbool("creative_mode") then
 		itemstack:take_item()
 	end
@@ -54,12 +54,18 @@ local stal_box_2 = {{-0.125+x_disp, -0.5, -0.125+z_disp, 0.125+x_disp, 0.5, 0.12
 local stal_box_3 = {{-0.25+x_disp, -0.5, -0.25+z_disp, 0.25+x_disp, 0.5, 0.25+z_disp}}
 local stal_box_4 = {{-0.375+x_disp, -0.5, -0.375+z_disp, 0.375+x_disp, 0.5, 0.375+z_disp}}
 
-local simple_copy = function(t)
-	local r = {}
-	for k, v in pairs(t) do
-		r[k] = v
+-- Note that a circular table reference will result in a crash, TODO: guard against that.
+-- Unlikely to be needed, though - it'd take a lot of work for users to get into this bit of trouble.
+local function deep_copy(table_in)
+	local table_out = {}
+	for index, value in pairs(table_in) do
+		if type(value) == "table" then
+			table_out[index] = deep_copy(value)
+		else
+			table_out[index] = value
+		end
 	end
-	return r
+	return table_out
 end
 
 subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_base_name)
@@ -72,43 +78,35 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 	base_node_def.is_ground_content = true
 	base_node_def.node_box = {type = "fixed"}
 	
-	local def1 = simple_copy(base_node_def)
+	local def1 = deep_copy(base_node_def)
 	def1.groups.fall_damage_add_percent = 100
 	def1.node_box.fixed = stal_box_1
-	def1.on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_1")
-	end
+	def1.on_place = stal_on_place
 	if drop_base_name then
 		def1.drop = drop_base_name.."_1"
 	end
 	minetest.register_node(base_name.."_1", def1)
 
-	local def2 = simple_copy(base_node_def)
+	local def2 = deep_copy(base_node_def)
 	def2.groups.fall_damage_add_percent = 50
 	def2.node_box.fixed = stal_box_2
-	def2.on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_2")
-	end
+	def2.on_place = stal_on_place
 	if drop_base_name then
 		def2.drop = drop_base_name.."_2"
 	end
 	minetest.register_node(base_name.."_2", def2)
 
-	local def3 = simple_copy(base_node_def)
+	local def3 = deep_copy(base_node_def)
 	def3.node_box.fixed = stal_box_3
-	def3.on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_3")
-	end
+	def3.on_place = stal_on_place
 	if drop_base_name then
 		def3.drop = drop_base_name.."_3"
 	end
 	minetest.register_node(base_name.."_3", def3)
 
-	local def4 = simple_copy(base_node_def)
+	local def4 = deep_copy(base_node_def)
 	def4.node_box.fixed = stal_box_4
-	def4.on_place = function(itemstack, placer, pointed_thing)
-		return stal_on_place(itemstack, placer, pointed_thing, base_name.."_4")
-	end
+	def4.on_place = stal_on_place
 	if drop_base_name then
 		def4.drop = drop_base_name.."_4"
 	end
@@ -125,15 +123,8 @@ end
 -------------------------------------------------------------------------------------------------
 -- Use with stalactite nodes defined above
 
--- use a negative height to turn this into a stalactite
 -- stalagmite_id is a table of the content ids of the four stalagmite sections, from _1 to _4.
-function subterrane:small_stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
-	local pos = area:position(vi)
-	
-	local x = pos.x
-	local y = pos.y
-	local z = pos.z
-	
+function subterrane.stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
 	if height == nil then height = math.random(1,4) end
 	if param2 == nil then param2 = math.random(0,3) end
 	
@@ -146,21 +137,24 @@ function subterrane:small_stalagmite(vi, area, data, param2_data, param2, height
 		id_modifier = 0
 	end
 	
-	data[vi] = c_air -- force the first node to be viable. It's assumed some testing was done before calling this function.
 	for i = 1, math.abs(height) do
-		vi = area:index(x, y + height - i * sign, z)
-		if data[vi] == c_air then
-			data[vi] = stalagmite_id[math.min(i+id_modifier,4)]
-			param2_data[vi] = param2
+		svi = vi + (height - i * sign) * area.ystride
+		if data[svi] == c_air then
+			data[svi] = stalagmite_id[math.min(i+id_modifier,4)]
+			param2_data[svi] = param2
 		end
 	end	
+end
+
+function subterrane.stalactite(vi, area, data, param2_data, param2, height, stalagmite_id)
+	subterrane.stalagmite(vi, area, data, param2_data, param2, -height, stalagmite_id)
 end
 
 -------------------------------------------------------------------------------------------------
 -- Builds very large stalactites and stalagmites
 
 --giant stalagmite spawner
-function subterrane:giant_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+function subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
 	local pos = area:position(vi)
 	local x = pos.x
 	local y = pos.y
@@ -195,7 +189,7 @@ function subterrane:giant_stalagmite(vi, area, data, min_height, max_height, bas
 end
 
 --giant stalactite spawner
-function subterrane:giant_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+function subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
 	local pos = area:position(vi)
 	local x = pos.x
 	local y = pos.y
