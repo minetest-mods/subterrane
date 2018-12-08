@@ -4,12 +4,23 @@
 -- Depends default
 -- License: code MIT
 
+local c_stone = minetest.get_content_id("default:stone")
+local c_desert_stone = minetest.get_content_id("default:desert_stone")
+
 local c_air = minetest.get_content_id("air")
 local c_water = minetest.get_content_id("default:water_source")
 local c_lava = minetest.get_content_id("default:lava_source")
 local c_water_flowing = minetest.get_content_id("default:water_flowing")
 local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
 local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flowing] = true, [c_lava_flowing] = true}
+
+local c_cavern_air = c_air
+local c_warren_air = c_air
+if minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode") then
+	c_cavern_air = c_stone
+	c_warren_air = c_desert_stone
+end
+
 
 subterrane = {} --create a container for functions and constants
 
@@ -327,7 +338,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				data[vi] = c_column -- add a column node
 				previous_node_state = inside_column
 			else
-				data[vi] = c_air --hollow it out to make the cave
+				data[vi] = c_cavern_air --hollow it out to make the cave
 				node_arrays.contains_cavern = true
 				if previous_node_state == inside_ground then
 					-- we just entered the cavern from below
@@ -385,7 +396,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 						data[vi] = c_column -- add a column node
 						previous_node_state = inside_column
 					else
-						data[vi] = c_air --hollow it out to make the cave
+						data[vi] = c_warren_air --hollow it out to make the cave
 						node_arrays.contains_warren = true
 						if previous_node_state == inside_ground then
 							-- we just entered the warren from below

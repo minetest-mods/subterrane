@@ -369,7 +369,10 @@ function subterrane:register_cave_decor(minimum_depth, maximum_depth)
 			local ai = vi + area.ystride
 			local bi = vi - area.ystride
 		
-			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			local biome
+			if biomemap then
+				biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			end
 			local cave_fill_node = c_air
 
 			if biome then
