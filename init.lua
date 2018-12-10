@@ -5,7 +5,9 @@
 -- License: code MIT
 
 local c_stone = minetest.get_content_id("default:stone")
+local c_clay = minetest.get_content_id("default:clay")
 local c_desert_stone = minetest.get_content_id("default:desert_stone")
+local c_sandstone = minetest.get_content_id("default:sandstone")
 
 local c_air = minetest.get_content_id("air")
 local c_water = minetest.get_content_id("default:water_source")
@@ -16,9 +18,11 @@ local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flo
 
 local c_cavern_air = c_air
 local c_warren_air = c_air
-if minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode") then
+
+local subterrane_enable_singlenode_mapping_mode = minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode")
+if subterrane_enable_singlenode_mapping_mode then
 	c_cavern_air = c_stone
-	c_warren_air = c_desert_stone
+	c_warren_air = c_clay
 end
 
 
@@ -91,7 +95,7 @@ local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flo
 
 local grid_size = mapgen_helper.block_size * 4
 
-local get_column_points = function(minp, maxp, column_def)
+subterrane.get_column_points = function(minp, maxp, column_def)
 	local grids = mapgen_helper.get_nearest_regions(minp, grid_size)
 	local points = {}
 	for _, grid in ipairs(grids) do
@@ -111,7 +115,7 @@ local get_column_points = function(minp, maxp, column_def)
 	return points
 end
 
-local get_point_heat = function(pos, points)
+subterrane.get_column_value = function(pos, points)
 	local heat = 0
 	for _, point in ipairs(points) do
 		local axis_point = {x=point.x, y=pos.y, z=point.z}
@@ -247,8 +251,13 @@ subterrane.register_layer = function(cave_layer_def)
 	end
 
 	local double_frequency = cave_layer_def.double_frequency
-	
+		
 	local decorate = cave_layer_def.decorate
+
+	if minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode") then
+		decorate = nil
+		c_column = c_air
+	end
 	
 -- On generated
 ----------------------------------------------------------------------------------
@@ -284,11 +293,10 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	-- is less likely to be of use so just store a bool to save on memory.
 	node_arrays.contains_cavern = false
 	node_arrays.contains_warren = false
+	node_arrays.contains_negative_zone = 0
 	
 	for vi, x, y, z in area:iterp_yxz(minp, maxp) do
 		local vi3d = cave_iterator() -- for use with noise data
-		
-		--data[vi] = c_stone -- TEMP for singlenode testing
 		
 		if y < previous_y then
 			-- we've switched to a new column
@@ -314,11 +322,19 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				-- completely distinct types of cavern decor in alternating caverns
 				-- in theory this could give inconsistent results if the positive and
 				-- negative caverns are close enough to touch the same map chunk,
-				-- but this is unlikely for plausible cavern settings - you'd have
-				-- almost entirely open space in that case.
-				node_arrays.contains_negative_zone = true
+				-- hopefully this will not come up often
+				node_arrays.contains_negative_zone = node_arrays.contains_negative_zone + 1
+				if subterrane_enable_singlenode_mapping_mode then
+						c_cavern_air = c_desert_stone
+						c_warren_air = c_sandstone
+				end
 			else
-				node_arrays.contains_negative_zone = false
+				node_arrays.contains_negative_zone = node_arrays.contains_negative_zone - 1
+				if subterrane_enable_singlenode_mapping_mode then
+						c_cavern_air = c_stone
+						c_warren_air = c_clay
+				end
+
 			end			
 		end
 		
@@ -328,10 +344,10 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			local column_value = 0
 			if column_def then
 				if column_points == nil then
-					column_points = get_column_points(minp, maxp, column_def)
+					column_points = subterrane.get_column_points(minp, maxp, column_def)
 					column_weight = column_def.weight
 				end
-				column_value = get_point_heat({x=x, y=y, z=z}, column_points)
+				column_value = subterrane.get_column_value({x=x, y=y, z=z}, column_points)
 			end
 			
 			if column_value > 0 and cave_value - column_value * column_weight < cave_local_threshold then
@@ -386,10 +402,10 @@ minetest.register_on_generated(function(minp, maxp, seed)
 					local column_value = 0
 					if column_def then
 						if column_points == nil then
-							column_points = get_column_points(minp, maxp, column_def)
+							column_points = subterrane.get_column_points(minp, maxp, column_def)
 							column_weight = column_def.weight
 						end
-						column_value = get_point_heat({x=x, y=y, z=z}, column_points)
+						column_value = subterrane.get_column_value({x=x, y=y, z=z}, column_points)
 					end
 
 					if column_value > 0 and column_value + (warren_local_threshold - warren_value) * column_weight > 0 then
@@ -447,6 +463,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	end
 	
 	if decorate then
+		node_arrays.contains_negative_zone = node_arrays.contains_negative_zone > 0
 		decorate(minp, maxp, seed, vm, node_arrays, area, data)
 		clear_node_arrays() -- if decorate is not defined these arrays will never have anything added to them
 	end

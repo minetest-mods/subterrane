@@ -138,8 +138,8 @@ function subterrane.stalagmite(vi, area, data, param2_data, param2, height, stal
 	end
 	
 	for i = 1, math.abs(height) do
-		svi = vi + (height - i * sign) * area.ystride
-		if data[svi] == c_air then
+		local svi = vi + (height - i * sign) * area.ystride
+		if data[svi] == c_air then -- test for air because we don't want these poking into water
 			data[svi] = stalagmite_id[math.min(i+id_modifier,4)]
 			param2_data[svi] = param2
 		end
@@ -167,7 +167,7 @@ function subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_
 				if j <= 0 then
 					if k*k + l*l <= 9 then
 						local vi = area:index(x+k, y+j, z+l)
-						if data[vi] == c_air then data[vi] = base_material end
+						if mapgen_helper.is_buildable_to(data[vi]) then data[vi] = base_material end
 					end
 				elseif j <= top/5 then
 					if k*k + l*l <= 4 then
@@ -202,7 +202,7 @@ function subterrane.big_stalactite(vi, area, data, min_height, max_height, base_
 				if j >= -1 then
 					if k*k + l*l <= 9 then
 						local vi = area:index(x+k, y+j, z+l)
-						if data[vi] == c_air then data[vi] = base_material end
+						if mapgen_helper.is_buildable_to(data[vi]) then data[vi] = base_material end
 					end
 				elseif j >= bot/5 then
 					if k*k + l*l <= 4 then
@@ -246,7 +246,7 @@ function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gi
 	for l = -cap_radius, cap_radius do
 		if k*k + l*l <= cap_radius*cap_radius then
 			local vi = area:index(x+k, y+stem_height, z+l)
-			if data[vi] == c_air then data[vi] = cap_material end
+			if mapgen_helper.is_buildable_to(data[vi]) then data[vi] = cap_material end
 		end
 		if k*k + l*l <= (cap_radius-1)*(cap_radius-1) and (cap_radius-1) > 0 then
 			local vi = area:index(x+k, y+stem_height+1, z+l)
@@ -256,11 +256,11 @@ function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gi
 		end
 		if k*k + l*l <= (cap_radius-2)*(cap_radius-2) and (cap_radius-2) > 0 then
 			local vi = area:index(x+k, y+stem_height+2, z+l)
-			if data[vi] == c_air then data[vi] = cap_material end
+			if mapgen_helper.is_buildable_to(data[vi]) then data[vi] = cap_material end
 		end
 		if k*k + l*l <= (cap_radius-3)*(cap_radius-3) and (cap_radius-3) > 0 then
 			local vi = area:index(x+k, y+stem_height+3, z+l)
-			if data[vi] == c_air then data[vi] = cap_material end
+			if mapgen_helper.is_buildable_to(data[vi]) then data[vi] = cap_material end
 		end
 	end
 	end
@@ -270,13 +270,13 @@ function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gi
 		data[vi] = stem_material
 		if cap_radius > 3 then
 			local ai = area:index(x, y+j, z+1)
-			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
+			if mapgen_helper.is_buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x, y+j, z-1)
-			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
+			if mapgen_helper.is_buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x+1, y+j, z)
-			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
+			if mapgen_helper.is_buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
 			ai = area:index(x-1, y+j, z)
-			if data[ai] == c_air or data[ai] == gill_material then data[ai] = stem_material end
+			if mapgen_helper.is_buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
 		end
 	end
 end
