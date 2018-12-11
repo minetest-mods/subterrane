@@ -14,7 +14,6 @@ local c_water = minetest.get_content_id("default:water_source")
 local c_lava = minetest.get_content_id("default:lava_source")
 local c_water_flowing = minetest.get_content_id("default:water_flowing")
 local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
-local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flowing] = true, [c_lava_flowing] = true}
 
 local c_cavern_air = c_air
 local c_warren_air = c_air
@@ -88,7 +87,6 @@ local c_water = minetest.get_content_id("default:water_source")
 local c_lava = minetest.get_content_id("default:lava_source")
 local c_water_flowing = minetest.get_content_id("default:water_flowing")
 local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
-local is_open = {[c_air] = true, [c_water] = true, [c_lava] = true, [c_water_flowing] = true, [c_lava_flowing] = true}
 
 -- Column stuff
 ----------------------------------------------------------------------------------
@@ -303,7 +301,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			previous_node_state = outside_region
 		end
 		previous_y = y
-	
+			
 		local cave_local_threshold
 		if y < y_blend_min then
 			cave_local_threshold = TCAVE + ((y_blend_min - y) / BLEND) ^ 2
@@ -427,7 +425,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 		-- If decorate is defined, we want to track all this stuff
 		if decorate ~= nil then
 			local c_current_node = data[vi]
-			local current_node_is_open = is_open[c_current_node]
+			local current_node_is_open = mapgen_helper.buildable_to(c_current_node)
 		
 			if previous_node_state == inside_column then 
 				-- in this case previous node state is actually current node state,
