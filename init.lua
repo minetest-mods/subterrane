@@ -209,6 +209,7 @@ end
 --	maximum_radius = -- Maximum radius for individual columns, defaults to 10
 --	minimum_radius = -- Minimum radius for individual columns, defaults to 4 (going lower that this can increase the likelihood of "intermittent" columns with floating sections)
 --	node = -- node name to build columns out of. Defaults to default:stone
+--	warren_node = -- node name to build columns out of in warren areas. If not set, the nodes that would be columns in warrens will be left as original ground contents
 --	weight = -- a floating point value (usually in the range of 0.5-1) to modify how strongly the column is affected by the surrounding cave. Lower values create a more variable, tapered stalactite/stalagmite combination whereas a value of 1 produces a roughly cylindrical column. Defaults to 0.25
 --	maximum_count = -- The maximum number of columns placed in any given column region (each region being a square 4 times the length and width of a map chunk). Defaults to 50
 --	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 0.
@@ -238,14 +239,19 @@ subterrane.register_layer = function(cave_layer_def)
 	
 	local column_def = cave_layer_def.columns
 	local c_column
+	local c_warren_column
 
 	if column_def then
 		column_def.maximum_radius = column_def.maximum_radius or defaults.column_def.maximum_radius
 		column_def.minimum_radius = column_def.minimum_radius or defaults.column_def.minimum_radius
-		c_column = column_def.node or defaults.column_def.node
+		c_column = minetest.get_content_id(column_def.node or defaults.column_def.node)
 		column_def.weight = column_def.weight or defaults.column_def.weight
 		column_def.maximum_count = column_def.maximum_count or defaults.column_def.maximum_count
 		column_def.minimum_count = column_def.minimum_count or defaults.column_def.minimum_count
+		
+		if column_def.warren_node then
+			c_warren_column = minetest.get_content_id(column_def.warren_node)
+		end
 	end
 
 	local double_frequency = cave_layer_def.double_frequency
@@ -255,6 +261,7 @@ subterrane.register_layer = function(cave_layer_def)
 	if minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode") then
 		decorate = nil
 		c_column = c_air
+		c_warren_column = nil
 	end
 	
 -- On generated
@@ -272,6 +279,12 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	local nvals_cave, cave_area = mapgen_helper.perlin3d("subterrane:cave", minp, maxp, np_cave) --cave noise for structure
 	local nvals_wave = mapgen_helper.perlin3d("subterrane:wave", minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
 
+	-- pre-average everything so that the final values can be passed
+	-- along to the decorate function if it wants them
+	for vi, value in ipairs(nvals_cave) do
+		nvals_cave[vi] = (value + nvals_wave[vi])/2
+	end
+	
 	local warren_area_uninitialized = true
 	local nvals_warren_area
 	local warrens_uninitialized = true
@@ -291,7 +304,8 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	-- is less likely to be of use so just store a bool to save on memory.
 	node_arrays.contains_cavern = false
 	node_arrays.contains_warren = false
-	node_arrays.contains_negative_zone = 0
+	node_arrays.nvals_cave = nvals_cave
+	node_arrays.cave_area = cave_area
 	
 	for vi, x, y, z in area:iterp_yxz(minp, maxp) do
 		local vi3d = cave_iterator() -- for use with noise data
@@ -311,23 +325,15 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			cave_local_threshold = TCAVE
 		end
 
-		local cave_value = (nvals_cave[vi3d] + nvals_wave[vi3d])/2
-		
+		local cave_value = nvals_cave[vi3d]
 		if double_frequency then
 			if cave_value < 0 then
 				cave_value = -cave_value
-				-- May be useful to the decorate function if it wants to place two
-				-- completely distinct types of cavern decor in alternating caverns
-				-- in theory this could give inconsistent results if the positive and
-				-- negative caverns are close enough to touch the same map chunk,
-				-- hopefully this will not come up often
-				node_arrays.contains_negative_zone = node_arrays.contains_negative_zone + 1
 				if subterrane_enable_singlenode_mapping_mode then
 						c_cavern_air = c_desert_stone
 						c_warren_air = c_sandstone
 				end
 			else
-				node_arrays.contains_negative_zone = node_arrays.contains_negative_zone - 1
 				if subterrane_enable_singlenode_mapping_mode then
 						c_cavern_air = c_stone
 						c_warren_air = c_clay
@@ -337,8 +343,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 		end
 		
 		-- inside a giant cavern
-		if cave_value > cave_local_threshold then
-
+		if cave_value > cave_local_threshold then		
 			local column_value = 0
 			if column_def then
 				if column_points == nil then
@@ -378,7 +383,6 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			local warren_area_value = nvals_warren_area[vi3d]
 			if warren_area_value > warren_area_variability_threshold then
 				-- we're in a warren-containing area
-				
 				if solidify_lava and data[vi] == c_lava then
 					data[vi] = c_obsidian					
 				end
@@ -407,8 +411,10 @@ minetest.register_on_generated(function(minp, maxp, seed)
 					end
 
 					if column_value > 0 and column_value + (warren_local_threshold - warren_value) * column_weight > 0 then
-						data[vi] = c_column -- add a column node
-						previous_node_state = inside_column
+						if c_warren_column then
+							data[vi] = c_warren_column -- add a column node
+							previous_node_state = inside_column
+						end
 					else
 						data[vi] = c_warren_air --hollow it out to make the cave
 						node_arrays.contains_warren = true
@@ -461,7 +467,6 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	end
 	
 	if decorate then
-		node_arrays.contains_negative_zone = node_arrays.contains_negative_zone > 0
 		decorate(minp, maxp, seed, vm, node_arrays, area, data)
 		clear_node_arrays() -- if decorate is not defined these arrays will never have anything added to them
 	end
