@@ -144,45 +144,53 @@ local inside_warren = 5
 local inside_column = 6
 
 -- These arrays will contain the indices of various nodes relevant to decoration
+-- Note that table.getn and # will not correctly report the number of items in these since they're reused
+-- between calls and are not cleared for efficiency. You can iterate through them using ipairs,
+-- and you can get their content count from the similarly-named variable associated with them.
 local node_arrays = {}
 local cavern_floor_nodes = {}
 node_arrays.cavern_floor_nodes = cavern_floor_nodes
+node_arrays.cavern_floor_count = 0
 local cavern_ceiling_nodes = {}
 node_arrays.cavern_ceiling_nodes = cavern_ceiling_nodes
+node_arrays.cavern_ceiling_count = 0
 local warren_floor_nodes = {}
 node_arrays.warren_floor_nodes = warren_floor_nodes
+node_arrays.warren_floor_count = 0
 local warren_ceiling_nodes = {}
 node_arrays.warren_ceiling_nodes = warren_ceiling_nodes
+node_arrays.warren_ceiling_count = 0
 local tunnel_floor_nodes = {}
 node_arrays.tunnel_floor_nodes = tunnel_floor_nodes
+node_arrays.tunnel_floor_count = 0
 local tunnel_ceiling_nodes = {}
 node_arrays.tunnel_ceiling_nodes = tunnel_ceiling_nodes
+node_arrays.tunnel_ceiling_count = 0
 local column_nodes = {}
 node_arrays.column_nodes = column_nodes
+node_arrays.column_count = 0
+
+-- inserts nil after the last node so that ipairs will function correctly
+local close_node_arrays = function()
+	cavern_ceiling_nodes[node_arrays.cavern_ceiling_count + 1] = nil
+	cavern_floor_nodes[node_arrays.cavern_floor_count + 1] = nil
+	warren_ceiling_nodes[node_arrays.warren_ceiling_count + 1] = nil
+	warren_floor_nodes[node_arrays.warren_floor_count + 1] = nil
+	tunnel_ceiling_nodes[node_arrays.tunnel_ceiling_count + 1] = nil
+	tunnel_floor_nodes[node_arrays.tunnel_floor_count + 1] = nil
+	column_nodes[node_arrays.column_count + 1] = nil
+end
 
 -- clear the tables without deleting them - easer on memory management this way
 local clear_node_arrays = function()
-	for k, _ in pairs(cavern_ceiling_nodes) do
-		cavern_ceiling_nodes[k] = nil
-	end
-	for k, _ in pairs(cavern_floor_nodes) do
-		cavern_floor_nodes[k] = nil
-	end
-	for k, _ in pairs(warren_ceiling_nodes) do
-		warren_ceiling_nodes[k] = nil
-	end
-	for k, _ in pairs(warren_floor_nodes) do
-		warren_floor_nodes[k] = nil
-	end
-	for k, _ in pairs(tunnel_ceiling_nodes) do
-		tunnel_ceiling_nodes[k] = nil
-	end
-	for k, _ in pairs(tunnel_floor_nodes) do
-		tunnel_floor_nodes[k] = nil
-	end
-	for k, _ in pairs(column_nodes) do
-		column_nodes[k] = nil
-	end
+	node_arrays.cavern_ceiling_count = 0
+	node_arrays.cavern_floor_count = 0
+	node_arrays.warren_ceiling_count = 0
+	node_arrays.warren_floor_count = 0
+	node_arrays.tunnel_ceiling_count = 0
+	node_arrays.tunnel_floor_count = 0
+	node_arrays.column_count = 0
+	close_node_arrays()
 end
 
 -- cave_layer_def
@@ -361,7 +369,8 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				node_arrays.contains_cavern = true
 				if previous_node_state == inside_ground then
 					-- we just entered the cavern from below
-					table.insert(cavern_floor_nodes, vi - area.ystride)
+					node_arrays.cavern_floor_count = node_arrays.cavern_floor_count + 1
+					cavern_floor_nodes[node_arrays.cavern_floor_count] = vi - area.ystride
 				end
 				previous_node_state = inside_cavern
 			end
@@ -420,7 +429,8 @@ minetest.register_on_generated(function(minp, maxp, seed)
 						node_arrays.contains_warren = true
 						if previous_node_state == inside_ground then
 							-- we just entered the warren from below
-							table.insert(warren_floor_nodes, vi - area.ystride)
+							node_arrays.warren_floor_count = node_arrays.warren_floor_count + 1
+							warren_floor_nodes[node_arrays.warren_floor_count] = vi - area.ystride
 						end
 						previous_node_state = inside_warren
 					end
@@ -436,21 +446,26 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			if previous_node_state == inside_column then 
 				-- in this case previous node state is actually current node state,
 				-- we placed a column node during this loop
-				table.insert(column_nodes, vi)
+				node_arrays.column_count = node_arrays.column_count + 1
+				column_nodes[node_arrays.column_count] = vi
 			elseif previous_node_state == inside_ground and current_node_is_open then
 				-- we just entered a tunnel from below
-				table.insert(tunnel_floor_nodes, vi-area.ystride)
+				node_arrays.tunnel_floor_count = node_arrays.tunnel_floor_count + 1
+				tunnel_floor_nodes[node_arrays.tunnel_floor_count] = vi-area.ystride
 				previous_node_state = inside_tunnel
 			elseif previous_node_state ~= inside_ground and not current_node_is_open then
 				if previous_node_state == inside_cavern then
 					--we just left the cavern from below
-					table.insert(cavern_ceiling_nodes, vi)
+					node_arrays.cavern_ceiling_count = node_arrays.cavern_ceiling_count + 1
+					cavern_ceiling_nodes[node_arrays.cavern_ceiling_count] = vi
 				elseif previous_node_state == inside_warren then
 					--we just left the cavern from below
-					table.insert(warren_ceiling_nodes, vi)
+					node_arrays.warren_ceiling_count = node_arrays.warren_ceiling_count + 1
+					warren_ceiling_nodes[node_arrays.warren_ceiling_count] = vi
 				elseif previous_node_state == inside_tunnel then
 					-- we just left a tunnel from below
-					table.insert(tunnel_ceiling_nodes, vi)
+					node_arrays.tunnel_ceiling_count = node_arrays.tunnel_ceiling_count + 1
+					tunnel_ceiling_nodes[node_arrays.tunnel_ceiling_count] = vi
 				end
 				
 				-- if we laid down a column node we don't want to switch to "inside ground",
@@ -467,8 +482,9 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	end
 	
 	if decorate then
+		close_node_arrays() -- inserts nil after the last node so that ipairs will function correctly
 		decorate(minp, maxp, seed, vm, node_arrays, area, data)
-		clear_node_arrays() -- if decorate is not defined these arrays will never have anything added to them
+		clear_node_arrays() -- if decorate is not defined these arrays will never have anything added to them, so it's safe to not call this in that case
 	end
 	
 	--send data back to voxelmanip
