@@ -57,6 +57,9 @@ function subterrane:giant_stalactite(vi, area, data, min_height, max_height, bas
 	subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
 end
 
+function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
+	subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
+end
 -------------------------------------------------------------------------------------
 -- Original cave registration code.
 

@@ -228,7 +228,7 @@ end
 
 --function to create giant 'shrooms. Cap radius works well from about 2-6
 --if ignore_bounds is true this function will place the mushroom even if it overlaps the edge of the voxel area.
-function subterrane:giant_shroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
+function subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
 
 	if not ignore_bounds and 
 		not (area:containsi(vi - cap_radius - area.zstride*cap_radius) and 
