@@ -37,7 +37,7 @@ dofile(modpath.."/features.lua") -- some generic cave features useful for a vari
 dofile(modpath.."/player_spawn.lua") -- Function for spawning a player in a giant cavern
 dofile(modpath.."/legacy.lua") -- contains old node definitions and functions, will be removed at some point in the future.
 
-local defaults = dofile(modpath.."/defaults.lua")
+local set_defaults = dofile(modpath.."/defaults.lua")
 
 local disable_mapgen_caverns = function()
 	local mg_name = minetest.get_mapgen_setting("mg_name")
@@ -147,49 +147,49 @@ local inside_column = 6
 -- Note that table.getn and # will not correctly report the number of items in these since they're reused
 -- between calls and are not cleared for efficiency. You can iterate through them using ipairs,
 -- and you can get their content count from the similarly-named variable associated with them.
-local node_arrays = {}
+local cavern_data = {}
 local cavern_floor_nodes = {}
-node_arrays.cavern_floor_nodes = cavern_floor_nodes
-node_arrays.cavern_floor_count = 0
+cavern_data.cavern_floor_nodes = cavern_floor_nodes
+cavern_data.cavern_floor_count = 0
 local cavern_ceiling_nodes = {}
-node_arrays.cavern_ceiling_nodes = cavern_ceiling_nodes
-node_arrays.cavern_ceiling_count = 0
+cavern_data.cavern_ceiling_nodes = cavern_ceiling_nodes
+cavern_data.cavern_ceiling_count = 0
 local warren_floor_nodes = {}
-node_arrays.warren_floor_nodes = warren_floor_nodes
-node_arrays.warren_floor_count = 0
+cavern_data.warren_floor_nodes = warren_floor_nodes
+cavern_data.warren_floor_count = 0
 local warren_ceiling_nodes = {}
-node_arrays.warren_ceiling_nodes = warren_ceiling_nodes
-node_arrays.warren_ceiling_count = 0
+cavern_data.warren_ceiling_nodes = warren_ceiling_nodes
+cavern_data.warren_ceiling_count = 0
 local tunnel_floor_nodes = {}
-node_arrays.tunnel_floor_nodes = tunnel_floor_nodes
-node_arrays.tunnel_floor_count = 0
+cavern_data.tunnel_floor_nodes = tunnel_floor_nodes
+cavern_data.tunnel_floor_count = 0
 local tunnel_ceiling_nodes = {}
-node_arrays.tunnel_ceiling_nodes = tunnel_ceiling_nodes
-node_arrays.tunnel_ceiling_count = 0
+cavern_data.tunnel_ceiling_nodes = tunnel_ceiling_nodes
+cavern_data.tunnel_ceiling_count = 0
 local column_nodes = {}
-node_arrays.column_nodes = column_nodes
-node_arrays.column_count = 0
+cavern_data.column_nodes = column_nodes
+cavern_data.column_count = 0
 
 -- inserts nil after the last node so that ipairs will function correctly
 local close_node_arrays = function()
-	cavern_ceiling_nodes[node_arrays.cavern_ceiling_count + 1] = nil
-	cavern_floor_nodes[node_arrays.cavern_floor_count + 1] = nil
-	warren_ceiling_nodes[node_arrays.warren_ceiling_count + 1] = nil
-	warren_floor_nodes[node_arrays.warren_floor_count + 1] = nil
-	tunnel_ceiling_nodes[node_arrays.tunnel_ceiling_count + 1] = nil
-	tunnel_floor_nodes[node_arrays.tunnel_floor_count + 1] = nil
-	column_nodes[node_arrays.column_count + 1] = nil
+	cavern_ceiling_nodes[cavern_data.cavern_ceiling_count + 1] = nil
+	cavern_floor_nodes[cavern_data.cavern_floor_count + 1] = nil
+	warren_ceiling_nodes[cavern_data.warren_ceiling_count + 1] = nil
+	warren_floor_nodes[cavern_data.warren_floor_count + 1] = nil
+	tunnel_ceiling_nodes[cavern_data.tunnel_ceiling_count + 1] = nil
+	tunnel_floor_nodes[cavern_data.tunnel_floor_count + 1] = nil
+	column_nodes[cavern_data.column_count + 1] = nil
 end
 
 -- clear the tables without deleting them - easer on memory management this way
 local clear_node_arrays = function()
-	node_arrays.cavern_ceiling_count = 0
-	node_arrays.cavern_floor_count = 0
-	node_arrays.warren_ceiling_count = 0
-	node_arrays.warren_floor_count = 0
-	node_arrays.tunnel_ceiling_count = 0
-	node_arrays.tunnel_floor_count = 0
-	node_arrays.column_count = 0
+	cavern_data.cavern_ceiling_count = 0
+	cavern_data.cavern_floor_count = 0
+	cavern_data.warren_ceiling_count = 0
+	cavern_data.warren_floor_count = 0
+	cavern_data.tunnel_ceiling_count = 0
+	cavern_data.tunnel_floor_count = 0
+	cavern_data.column_count = 0
 	close_node_arrays()
 end
 
@@ -225,22 +225,24 @@ end
 
 subterrane.register_layer = function(cave_layer_def)
 	table.insert(subterrane.registered_layers, cave_layer_def)
-
+	
+	set_defaults(cave_layer_def)
+	
 	local YMIN = cave_layer_def.y_min
 	local YMAX = cave_layer_def.y_max
-	local BLEND = math.min(cave_layer_def.boundary_blend_range or 128, (YMAX-YMIN)/2)
+	local BLEND = math.min(cave_layer_def.boundary_blend_range, (YMAX-YMIN)/2)
 
-	local TCAVE = cave_layer_def.cave_threshold or 0.5
-	local warren_area_threshold = cave_layer_def.warren_region_threshold or 0.25 -- determines how much volume warrens are found in around caverns
-	local warren_area_variability_threshold = cave_layer_def.warren_region_variability_threshold or 0.25 -- determines how much of the warren_area_threshold volume actually has warrens in it
-	local warren_threshold = cave_layer_def.warren_threshold or 0.25 -- determines narrowness of warrens themselves
+	local TCAVE = cave_layer_def.cave_threshold
+	local warren_area_threshold = cave_layer_def.warren_region_threshold -- determines how much volume warrens are found in around caverns
+	local warren_area_variability_threshold = cave_layer_def.warren_region_variability_threshold -- determines how much of the warren_area_threshold volume actually has warrens in it
+	local warren_threshold = cave_layer_def.warren_threshold -- determines narrowness of warrens themselves
 
 	local solidify_lava = cave_layer_def.solidify_lava
 	
-	local np_cave = cave_layer_def.perlin_cave or defaults.perlin_cave
-	local np_wave = cave_layer_def.perlin_wave or defaults.perlin_wave
-	local np_warren_area = cave_layer_def.perlin_warren_area or defaults.perlin_warren_area
-	local np_warrens = cave_layer_def.perlin_warrens or defaults.perlin_warrens 
+	local np_cave = cave_layer_def.perlin_cave
+	local np_wave = cave_layer_def.perlin_wave
+	local np_warren_area = cave_layer_def.perlin_warren_area
+	local np_warrens = cave_layer_def.perlin_warrens
 	
 	local y_blend_min = YMIN + BLEND * 1.5
 	local y_blend_max = YMAX - BLEND * 1.5	
@@ -250,12 +252,12 @@ subterrane.register_layer = function(cave_layer_def)
 	local c_warren_column
 
 	if column_def then
-		column_def.maximum_radius = column_def.maximum_radius or defaults.column_def.maximum_radius
-		column_def.minimum_radius = column_def.minimum_radius or defaults.column_def.minimum_radius
-		c_column = minetest.get_content_id(column_def.node or defaults.column_def.node)
-		column_def.weight = column_def.weight or defaults.column_def.weight
-		column_def.maximum_count = column_def.maximum_count or defaults.column_def.maximum_count
-		column_def.minimum_count = column_def.minimum_count or defaults.column_def.minimum_count
+		column_def.maximum_radius = column_def.maximum_radius
+		column_def.minimum_radius = column_def.minimum_radius
+		c_column = minetest.get_content_id(column_def.node)
+		column_def.weight = column_def.weight
+		column_def.maximum_count = column_def.maximum_count
+		column_def.minimum_count = column_def.minimum_count
 		
 		if column_def.warren_node then
 			c_warren_column = minetest.get_content_id(column_def.warren_node)
@@ -310,10 +312,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	
 	-- This information might be of use to the decorate function, but an entire node list
 	-- is less likely to be of use so just store a bool to save on memory.
-	node_arrays.contains_cavern = false
-	node_arrays.contains_warren = false
-	node_arrays.nvals_cave = nvals_cave
-	node_arrays.cave_area = cave_area
+	cavern_data.contains_cavern = false
+	cavern_data.contains_warren = false
+	cavern_data.nvals_cave = nvals_cave
+	cavern_data.cave_area = cave_area
+	cavern_data.cavern_def = cave_layer_def
 	
 	for vi, x, y, z in area:iterp_yxz(minp, maxp) do
 		local vi3d = cave_iterator() -- for use with noise data
@@ -366,11 +369,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				previous_node_state = inside_column
 			else
 				data[vi] = c_cavern_air --hollow it out to make the cave
-				node_arrays.contains_cavern = true
+				cavern_data.contains_cavern = true
 				if previous_node_state == inside_ground then
 					-- we just entered the cavern from below
-					node_arrays.cavern_floor_count = node_arrays.cavern_floor_count + 1
-					cavern_floor_nodes[node_arrays.cavern_floor_count] = vi - area.ystride
+					cavern_data.cavern_floor_count = cavern_data.cavern_floor_count + 1
+					cavern_floor_nodes[cavern_data.cavern_floor_count] = vi - area.ystride
 				end
 				previous_node_state = inside_cavern
 			end
@@ -426,11 +429,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 						end
 					else
 						data[vi] = c_warren_air --hollow it out to make the cave
-						node_arrays.contains_warren = true
+						cavern_data.contains_warren = true
 						if previous_node_state == inside_ground then
 							-- we just entered the warren from below
-							node_arrays.warren_floor_count = node_arrays.warren_floor_count + 1
-							warren_floor_nodes[node_arrays.warren_floor_count] = vi - area.ystride
+							cavern_data.warren_floor_count = cavern_data.warren_floor_count + 1
+							warren_floor_nodes[cavern_data.warren_floor_count] = vi - area.ystride
 						end
 						previous_node_state = inside_warren
 					end
@@ -446,26 +449,26 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			if previous_node_state == inside_column then 
 				-- in this case previous node state is actually current node state,
 				-- we placed a column node during this loop
-				node_arrays.column_count = node_arrays.column_count + 1
-				column_nodes[node_arrays.column_count] = vi
+				cavern_data.column_count = cavern_data.column_count + 1
+				column_nodes[cavern_data.column_count] = vi
 			elseif previous_node_state == inside_ground and current_node_is_open then
 				-- we just entered a tunnel from below
-				node_arrays.tunnel_floor_count = node_arrays.tunnel_floor_count + 1
-				tunnel_floor_nodes[node_arrays.tunnel_floor_count] = vi-area.ystride
+				cavern_data.tunnel_floor_count = cavern_data.tunnel_floor_count + 1
+				tunnel_floor_nodes[cavern_data.tunnel_floor_count] = vi-area.ystride
 				previous_node_state = inside_tunnel
 			elseif previous_node_state ~= inside_ground and not current_node_is_open then
 				if previous_node_state == inside_cavern then
 					--we just left the cavern from below
-					node_arrays.cavern_ceiling_count = node_arrays.cavern_ceiling_count + 1
-					cavern_ceiling_nodes[node_arrays.cavern_ceiling_count] = vi
+					cavern_data.cavern_ceiling_count = cavern_data.cavern_ceiling_count + 1
+					cavern_ceiling_nodes[cavern_data.cavern_ceiling_count] = vi
 				elseif previous_node_state == inside_warren then
 					--we just left the cavern from below
-					node_arrays.warren_ceiling_count = node_arrays.warren_ceiling_count + 1
-					warren_ceiling_nodes[node_arrays.warren_ceiling_count] = vi
+					cavern_data.warren_ceiling_count = cavern_data.warren_ceiling_count + 1
+					warren_ceiling_nodes[cavern_data.warren_ceiling_count] = vi
 				elseif previous_node_state == inside_tunnel then
 					-- we just left a tunnel from below
-					node_arrays.tunnel_ceiling_count = node_arrays.tunnel_ceiling_count + 1
-					tunnel_ceiling_nodes[node_arrays.tunnel_ceiling_count] = vi
+					cavern_data.tunnel_ceiling_count = cavern_data.tunnel_ceiling_count + 1
+					tunnel_ceiling_nodes[cavern_data.tunnel_ceiling_count] = vi
 				end
 				
 				-- if we laid down a column node we don't want to switch to "inside ground",
@@ -483,7 +486,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	
 	if decorate then
 		close_node_arrays() -- inserts nil after the last node so that ipairs will function correctly
-		decorate(minp, maxp, seed, vm, node_arrays, area, data)
+		decorate(minp, maxp, seed, vm, cavern_data, area, data)
 		clear_node_arrays() -- if decorate is not defined these arrays will never have anything added to them, so it's safe to not call this in that case
 	end
 	
