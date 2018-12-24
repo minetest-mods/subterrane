@@ -201,7 +201,10 @@ function subterrane:register_cave_layer(cave_layer_def)
 				tcave = TCAVE
 			end
 	
-			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			local biome
+			if biomemap then
+				biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			end
 
 			if biome and biome._subterrane_override_sea_level and y <= biome._subterrane_override_sea_level then
 				local override_name = biome._subterrane_override_under_sea_biome
@@ -262,7 +265,10 @@ function subterrane:register_cave_layer(cave_layer_def)
 				tcave = TCAVE
 			end
 				
-			local biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			local biome
+			if biomemap then
+				biome = mapgen_helper.get_biome_def(biomemap[index_2d])
+			end
 			local fill_node = c_air
 			local cave_fill_node = c_air
 			
