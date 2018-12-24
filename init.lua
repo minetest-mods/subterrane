@@ -209,7 +209,8 @@ end
 --	solidify_lava = -- when set to true, lava near the edges of caverns is converted into obsidian to prevent it from spilling in.
 --	columns = -- optional, a column_def table for producing truly enormous dripstone formations. See below for definition. Set to nil to disable columns.
 --	double_frequency = -- when set to true, uses the absolute value of the cavern field to determine where to place caverns instead. This effectively doubles the number of large non-connected caverns.
---	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings.
+--	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings. It is given the parameters (minp, maxp, seed, vm, cavern_data, area, data). See below for the cavern_data table's member definitions.
+--	post_generate = -- Optional, a function called after mapgen has committed data to the voxelmanipulator. Might be useful for setting metadata on nodes, for example. It is given the parameters (minp, maxp, seed, cavern_data). If you attach extra data to cavern_data in the decorate function it will be present when cavern_data is passed to post_generate. Remember to clean up the extra data, the cavern_data table is reused between map chunks.
 --}
 
 -- column_def
@@ -221,6 +222,30 @@ end
 --	weight = -- a floating point value (usually in the range of 0.5-1) to modify how strongly the column is affected by the surrounding cave. Lower values create a more variable, tapered stalactite/stalagmite combination whereas a value of 1 produces a roughly cylindrical column. Defaults to 0.25
 --	maximum_count = -- The maximum number of columns placed in any given column region (each region being a square 4 times the length and width of a map chunk). Defaults to 50
 --	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 0.
+--}
+
+-- cavern_data -- This is passed into the decorate and post_generate methods.
+--{
+--	cavern_floor_nodes = {} -- List of data indexes for nodes that are part of cavern floors. Note: Use ipairs() when iterating this, not pairs()
+--	cavern_floor_count = 0 -- the count of nodes in the preceeding list.
+--	cavern_ceiling_nodes = {} -- List of data indexes for nodes that are part of cavern ceilings. Note: Use ipairs() when iterating this, not pairs()
+--	cavern_ceiling_count = 0 -- the count of nodes in the preceeding list.
+--	warren_floor_nodes = {} -- List of data indexes for nodes that are part of warren floors. Note: Use ipairs() when iterating this, not pairs()
+--	warren_floor_count = 0 -- the count of nodes in the preceeding list.
+--	warren_ceiling_nodes = {} -- List of data indexes for nodes that are part of warren floors. Note: Use ipairs() when iterating this, not pairs()
+--	warren_ceiling_count = 0 -- the count of nodes in the preceeding list.
+--	tunnel_floor_nodes = {} -- List of data indexes for nodes that are part of floors in pre-existing tunnels (anything generated before this mapgen runs). Note: Use ipairs() when iterating this, not pairs()
+--	tunnel_floor_count = 0 -- the count of nodes in the preceeding list.
+--	tunnel_ceiling_nodes = {}  -- List of data indexes for nodes that are part of ceiling in pre-existing tunnels (anything generated before this mapgen runs). Note: Use ipairs() when iterating this, not pairs()
+--	tunnel_ceiling_count = 0 -- the count of nodes in the preceeding list.
+--	column_nodes = {} -- Nodes that belong to columns. Note that if the warren_node was not set in the column definition these might not have been replaced by anything yet. This list contains *all* column nodes, not just ones on the surface.
+--	column_count = 0 -- the count of nodes in the preceeding list.
+
+--	contains_cavern = false -- Use this if you want a quick check if the generated map chunk has any cavern volume in it. Don't rely on the node counts above, if the map chunk doesn't intersect the floor or ceiling those could be 0 even if a cavern is present.
+--	contains_warren = false -- Ditto for contains_cavern
+--	nvals_cave = nvals_cave -- The noise array used to generate the cavern.
+--	cave_area = cave_area -- a VoxelArea for indexing nvals_cave
+--	cavern_def = cave_layer_def -- a reference to the cave layer def.
 --}
 
 subterrane.register_layer = function(cave_layer_def)
@@ -310,8 +335,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	local column_points = nil
 	local column_weight = nil
 	
-	-- This information might be of use to the decorate function, but an entire node list
-	-- is less likely to be of use so just store a bool to save on memory.
+	-- This information might be of use to the decorate function.
 	cavern_data.contains_cavern = false
 	cavern_data.contains_warren = false
 	cavern_data.nvals_cave = nvals_cave
@@ -498,6 +522,11 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	vm:update_liquids()
 	--write it to world
 	vm:write_to_map()
+	
+	local post_generate = cave_layer_def.post_generate
+	if post_generate then
+		post_generate(minp, maxp, seed, cavern_data)
+	end
 	
 	local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
 	if chunk_generation_time < 1000 then
