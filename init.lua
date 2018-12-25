@@ -210,7 +210,6 @@ end
 --	columns = -- optional, a column_def table for producing truly enormous dripstone formations. See below for definition. Set to nil to disable columns.
 --	double_frequency = -- when set to true, uses the absolute value of the cavern field to determine where to place caverns instead. This effectively doubles the number of large non-connected caverns.
 --	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings. It is given the parameters (minp, maxp, seed, vm, cavern_data, area, data). See below for the cavern_data table's member definitions.
---	post_generate = -- Optional, a function called after mapgen has committed data to the voxelmanipulator. Might be useful for setting metadata on nodes, for example. It is given the parameters (minp, maxp, seed, cavern_data). If you attach extra data to cavern_data in the decorate function it will be present when cavern_data is passed to post_generate. Remember to clean up the extra data, the cavern_data table is reused between map chunks.
 --}
 
 -- column_def
@@ -224,7 +223,7 @@ end
 --	minimum_count = -- The minimum number of columns placed in a column region. The actual number placed will be randomly selected between this range. Defaults to 0.
 --}
 
--- cavern_data -- This is passed into the decorate and post_generate methods.
+-- cavern_data -- This is passed into the decorate method.
 --{
 --	cavern_floor_nodes = {} -- List of data indexes for nodes that are part of cavern floors. Note: Use ipairs() when iterating this, not pairs()
 --	cavern_floor_count = 0 -- the count of nodes in the preceeding list.
@@ -522,11 +521,6 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	vm:update_liquids()
 	--write it to world
 	vm:write_to_map()
-	
-	local post_generate = cave_layer_def.post_generate
-	if post_generate then
-		post_generate(minp, maxp, seed, cavern_data)
-	end
 	
 	local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
 	if chunk_generation_time < 1000 then
