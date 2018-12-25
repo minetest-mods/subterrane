@@ -33,11 +33,10 @@ subterrane.registered_layers = {}
 local modpath = minetest.get_modpath(minetest.get_current_modname())
 
 --load companion lua files
+dofile(modpath.."/defaults.lua")
 dofile(modpath.."/features.lua") -- some generic cave features useful for a variety of mapgens
 dofile(modpath.."/player_spawn.lua") -- Function for spawning a player in a giant cavern
 dofile(modpath.."/legacy.lua") -- contains old node definitions and functions, will be removed at some point in the future.
-
-local set_defaults = dofile(modpath.."/defaults.lua")
 
 local disable_mapgen_caverns = function()
 	local mg_name = minetest.get_mapgen_setting("mg_name")
@@ -250,7 +249,7 @@ end
 subterrane.register_layer = function(cave_layer_def)
 	table.insert(subterrane.registered_layers, cave_layer_def)
 	
-	set_defaults(cave_layer_def)
+	subterrane.set_defaults(cave_layer_def)
 	
 	local YMIN = cave_layer_def.y_min
 	local YMAX = cave_layer_def.y_max
@@ -276,13 +275,7 @@ subterrane.register_layer = function(cave_layer_def)
 	local c_warren_column
 
 	if column_def then
-		column_def.maximum_radius = column_def.maximum_radius
-		column_def.minimum_radius = column_def.minimum_radius
 		c_column = minetest.get_content_id(column_def.node)
-		column_def.weight = column_def.weight
-		column_def.maximum_count = column_def.maximum_count
-		column_def.minimum_count = column_def.minimum_count
-		
 		if column_def.warren_node then
 			c_warren_column = minetest.get_content_id(column_def.warren_node)
 		end

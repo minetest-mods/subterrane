@@ -1,4 +1,4 @@
-local defaults = {
+subterrane.defaults = {
 	--y_max =
 	--y_min =
 	cave_threshold = 0.5,
@@ -62,6 +62,6 @@ recurse_defaults = function(target_table, default_table)
 	end
 end
 
-return function(cave_layer_def)
-	recurse_defaults(cave_layer_def, defaults)
+subterrane.set_defaults = function(cave_layer_def)
+	recurse_defaults(cave_layer_def, subterrane.defaults)
 end
