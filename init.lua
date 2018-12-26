@@ -11,9 +11,8 @@ local c_sandstone = minetest.get_content_id("default:sandstone")
 
 local c_air = minetest.get_content_id("air")
 local c_water = minetest.get_content_id("default:water_source")
-local c_lava = minetest.get_content_id("default:lava_source")
-local c_water_flowing = minetest.get_content_id("default:water_flowing")
-local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
+
+local c_obsidian = minetest.get_content_id("default:obsidian")
 
 local c_cavern_air = c_air
 local c_warren_air = c_air
@@ -24,6 +23,7 @@ if subterrane_enable_singlenode_mapping_mode then
 	c_warren_air = c_clay
 end
 
+local c_lava_set -- will be populated with a set of nodes that count as lava
 
 subterrane = {} --create a container for functions and constants
 
@@ -78,14 +78,6 @@ local disable_mapgen_caverns = function()
 	minetest.set_mapgen_setting(flags_name, table.concat(new_flags, ","), true)
 end
 disable_mapgen_caverns()
-
-local c_obsidian = minetest.get_content_id("default:obsidian")
-
-local c_air = minetest.get_content_id("air")
-local c_water = minetest.get_content_id("default:water_source")
-local c_lava = minetest.get_content_id("default:lava_source")
-local c_water_flowing = minetest.get_content_id("default:water_flowing")
-local c_lava_flowing = minetest.get_content_id("default:lava_flowing")
 
 -- Column stuff
 ----------------------------------------------------------------------------------
@@ -302,6 +294,15 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	end
 	local t_start = os.clock()
 
+	if c_lava_set == nil then
+		c_lava_set = {}
+		for name, def in pairs(minetest.registered_nodes) do
+			if def.groups ~= nil and def.groups.lava ~= nil then
+				c_lava_set[minetest.get_content_id(name)] = true
+			end
+		end
+	end
+	
 	local vm, data, data_param2, area = mapgen_helper.mapgen_vm_data_param2()
 	local nvals_cave, cave_area = mapgen_helper.perlin3d("subterrane:cave", minp, maxp, np_cave) --cave noise for structure
 	local nvals_wave = mapgen_helper.perlin3d("subterrane:wave", minp, maxp, np_wave) --wavy structure of cavern ceilings and floors
@@ -396,7 +397,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 		end
 		
 		-- If there's lava near the edges of the cavern, solidify it.
-		if solidify_lava and cave_value > cave_local_threshold - 0.05 and data[vi] == c_lava then
+		if solidify_lava and cave_value > cave_local_threshold - 0.05 and c_lava_set[data[vi]] then
 			data[vi] = c_obsidian
 		end
 			
@@ -411,7 +412,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			local warren_area_value = nvals_warren_area[vi3d]
 			if warren_area_value > warren_area_variability_threshold then
 				-- we're in a warren-containing area
-				if solidify_lava and data[vi] == c_lava then
+				if solidify_lava and c_lava_set[data[vi]] then
 					data[vi] = c_obsidian					
 				end
 				
