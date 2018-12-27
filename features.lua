@@ -233,7 +233,7 @@ function subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, 
 	if not ignore_bounds and 
 		not (area:containsi(vi - cap_radius - area.zstride*cap_radius) and 
 		area:containsi(vi + cap_radius + stem_height*area.ystride + area.zstride*cap_radius)) then
-			return -- mushroom overlaps the bounds of the voxel area, abort.
+			return false -- mushroom overlaps the bounds of the voxel area, abort.
 	end
 
 	local pos = area:position(vi)
@@ -265,18 +265,21 @@ function subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, 
 	end
 	end
 	--stem
-	for j = 0, stem_height do
+	for j = -2, stem_height do -- going down to -2 to ensure the stem is flush with the ground
 		local vi = area:index(x, y+j, z)
-		data[vi] = stem_material
-		if cap_radius > 3 then
-			local ai = area:index(x, y+j, z+1)
-			if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
-			ai = area:index(x, y+j, z-1)
-			if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
-			ai = area:index(x+1, y+j, z)
-			if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
-			ai = area:index(x-1, y+j, z)
-			if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
+		if j >= 0 or area:containsi(vi) then -- since -2 puts us below the bounds we've already tested, add a contains check here.
+			data[vi] = stem_material
+			if cap_radius > 3 then
+				local ai = area:index(x, y+j, z+1)
+				if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
+				ai = area:index(x, y+j, z-1)
+				if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
+				ai = area:index(x+1, y+j, z)
+				if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
+				ai = area:index(x-1, y+j, z)
+				if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
+			end
 		end
 	end
+	return true
 end
