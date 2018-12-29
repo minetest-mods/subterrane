@@ -2,7 +2,7 @@
 
 This mod was based off of Caverealms by HeroOfTheWinds, which was in turn based off of Subterrain by Paramat.
 
-It is intended as a utility mod for other mods to use when creating a more interesting underground experience in Minetest, primarily through the creation of enormous underground "natural" caverns with biome-based features. Installing this mod by itself will not do anything.
+It is intended as a utility mod for other mods to use when creating a more interesting underground experience in Minetest, primarily through the creation of enormous underground "natural" caverns with hooks to add custom decorations. Installing this mod by itself will not do anything. This mod depends in turn on the [mapgen_helper](https://github.com/minetest-mods/mapgen_helper) mod.
 
 The API has the following methods:
 
@@ -50,7 +50,6 @@ The column_def table is of the form:
 
 This causes large caverns to be hollowed out during map generation. By default these caverns are just featureless cavities, but you can add extra subterrane-specific properties to biomes and the mapgen code will use them to add features of your choice using the "on_decorate" callback. The callback is passed a data table with the following information:
 
--- cavern_data -- This is passed into the decorate method.
 ```
 {
 	cavern_floor_nodes = {} -- List of data indexes for nodes that are part of cavern floors. *Note:* Use ipairs() when iterating this, not pairs()
@@ -87,15 +86,15 @@ Subterrane has a number of functions bundled with it for generating some basic f
 	* then when the player mines a dry stalactite they'll get a dry stalactite node and if they mine a wet stalactite they'll get a corresponding dry stalactite node as the drop instead.
 	* This method returns a table consisting of the content IDs for the four stalactite nodes, which can be used directly in the following methods:
 
-* subterrane.stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
-* subterrane.stalactite(vi, area, data, param2_data, param2, height, stalagmite_id)
+* `subterrane.stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)`
+* `subterrane.stalactite(vi, area, data, param2_data, param2, height, stalagmite_id)`
 	* These methods can be used to create a small stalactite or stalagmite, generally no more than 5 nodes tall. Use a negative height to generate a stalactite. The parameter stalagmite_id is a table of four content IDs for the stalagmite nodes, in order from thinnest ("_1") to thickest ("_4"). The register_stalagmite_nodes method returns a table that can be used for this directly.
 
-* subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
-* subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
+* `subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)`
+* `subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)`
 	* Generates a very large multi-node stalagmite or stalactite three nodes in diameter (with a five-node-diameter "root").
 
-* subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius)
+* `subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius)`
 	* Generates an enormous mushroom. Cap radius works well in the range of around 2-6, larger or smaller than that may look odd.
 
 # Player spawn
