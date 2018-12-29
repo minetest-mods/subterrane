@@ -186,6 +186,7 @@ end
 
 -- cave_layer_def
 --{
+--	name = -- optional, defaults to the string "y_min to y_max" (with actual values inserted in place of y_min and y_max). Used for logging.
 --	y_max = -- required, the highest elevation this cave layer will be generated in.
 --	y_min = -- required, the lowest elevation this cave layer will be generated in.
 --	cave_threshold = -- optional, Cave threshold. Defaults to 0.5. 1 = small rare caves, 0 = 1/2 ground volume
@@ -239,12 +240,43 @@ end
 --}
 
 subterrane.register_layer = function(cave_layer_def)
-	table.insert(subterrane.registered_layers, cave_layer_def)
-	
+	local error_out = false
+	if cave_layer_def.y_min == nil then
+		minetest.log("error", "[subterrane] cave layer def " .. tostring(cave_layer_def.name) .. " did not have a y_min defined. Not registered.")
+		error_out = true
+	end
+	if cave_layer_def.y_max == nil then
+		minetest.log("error", "[subterrane] cave layer def " .. tostring(cave_layer_def.name) .. " did not have a y_max defined. Not registered.")
+		error_out = true
+	end
+	if error_out then return end
+		
 	subterrane.set_defaults(cave_layer_def)
 	
 	local YMIN = cave_layer_def.y_min
 	local YMAX = cave_layer_def.y_max
+	
+	if cave_layer_def.name == nil then
+		cave_layer_def.name = tostring(YMIN) .. " to " .. tostring(YMAX)
+	end
+	
+	table.insert(subterrane.registered_layers, cave_layer_def)
+
+	local block_size = mapgen_helper.block_size
+	
+	if (YMAX+32+1)%block_size ~= 0 then
+		local boundary = YMAX -(YMAX+32+1)%block_size
+		minetest.log("warning", "[subterrane] The y_max setting "..tostring(YMAX)..
+			" for cavern layer " .. cave_layer_def.name .. " is not aligned with map chunk boundaries. Consider "..
+			tostring(boundary) .. " or " .. tostring(boundary+block_size) .. " for maximum mapgen efficiency.")
+	end
+	if (YMIN+32)%block_size ~= 0 then
+		local boundary = YMIN - (YMIN+32)%block_size
+		minetest.log("warning", "[subterrane] The y_min setting "..tostring(YMIN)..
+			" for cavern layer " .. cave_layer_def.name .. " is not aligned with map chunk boundaries. Consider "..
+			tostring(boundary) .. " or " .. tostring(boundary+block_size) .. " for maximum mapgen efficiency.")
+	end
+
 	local BLEND = math.min(cave_layer_def.boundary_blend_range, (YMAX-YMIN)/2)
 
 	local TCAVE = cave_layer_def.cave_threshold
@@ -518,10 +550,10 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	
 	local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
 	if chunk_generation_time < 1000 then
-		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms") --tell people how long
+		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms to generate " .. cave_layer_def.name) --tell people how long
 	else
 		minetest.log("warning", "[subterrane] took "..chunk_generation_time.." ms to generate map block "
-			.. minetest.pos_to_string(minp) .. minetest.pos_to_string(maxp))
+			.. minetest.pos_to_string(minp) .. minetest.pos_to_string(maxp) .. " in cave layer " .. cave_layer_def.name)
 	end
 end)
 

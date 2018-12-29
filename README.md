@@ -14,8 +14,9 @@ cave_layer_def is a table of the form:
 
 ```
 {
-	y_max = -- required, the highest elevation this cave layer will be generated in.
-	y_min = -- required, the lowest elevation this cave layer will be generated in.
+	name = -- optional, defaults to the string "y_min to y_max" (with actual values inserted in place of y_min and y_max). Used for logging.
+	y_max = -- required, the highest elevation this cave layer will be generated in. Upper boundaries for cavern depths are most efficient when they fit the formula (x*80-32)-1 where x is an integer, that way you don't generate map blocks that straddle two cavern layers. The "-1" keeps them from intruding on the map block above.
+	y_min = -- required, the lowest elevation this cave layer will be generated in. Lower boundaries are most efficient when they fit (x*80-32).
 	cave_threshold = -- optional, Cave threshold. Defaults to 0.5. 1 = small rare caves, 0 = 1/2 ground volume
 	warren_region_threshold = -- optional, defaults to 0.25. Used to determine how much volume warrens take up around caverns. Set it to be equal to or greater than the cave threshold to disable warrens entirely.
 	warren_region_variability_threshold = -- optional, defaults to 0.25. Used to determine how much of the region contained within the warren_region_threshold actually has warrens in it.

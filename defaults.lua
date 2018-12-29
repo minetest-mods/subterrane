@@ -1,6 +1,6 @@
 subterrane.defaults = {
-	--y_max =
-	--y_min =
+	--y_max = Must be provided by the user
+	--y_min = Must be provided by the user
 	cave_threshold = 0.5,
 	warren_region_threshold = 0.25,
 	warren_region_variability_threshold = 0.25,
