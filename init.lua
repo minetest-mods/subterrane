@@ -211,6 +211,7 @@ end
 --	columns = -- optional, a column_def table for producing truly enormous dripstone formations. See below for definition. Set to nil to disable columns.
 --	double_frequency = -- when set to true, uses the absolute value of the cavern field to determine where to place caverns instead. This effectively doubles the number of large non-connected caverns.
 --	decorate = -- optional, a function that is given a table of indices and a variety of other mapgen information so that it can place custom decorations on floors and ceilings. It is given the parameters (minp, maxp, seed, vm, cavern_data, area, data). See below for the cavern_data table's member definitions.
+--	is_ground_content = -- optional, a function that takes a content_id and returns true if caverns should be carved through that node type. If not provided it defaults to a "is_ground_content" test.
 --}
 
 -- column_def
@@ -324,6 +325,11 @@ subterrane.register_layer = function(cave_layer_def)
 		c_warren_column = nil
 	end
 	
+	local is_ground_content = cave_layer_def.is_ground_content
+	if is_ground_content == nil then
+		is_ground_content = mapgen_helper.is_ground_content
+	end
+	
 -- On generated
 ----------------------------------------------------------------------------------
 
@@ -429,12 +435,12 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			end
 			
 			if column_value > 0 and cave_value - column_value * column_weight < cave_local_threshold then
-				if mapgen_helper.is_ground_content(data[vi]) then
+				if is_ground_content(data[vi]) then
 					data[vi] = c_column -- add a column node
 				end
 				this_node_state = inside_column
 			else
-				if mapgen_helper.is_ground_content(data[vi]) then
+				if is_ground_content(data[vi]) then
 					data[vi] = c_cavern_air --hollow it out to make the cave
 				end
 				this_node_state = inside_cavern
@@ -489,13 +495,13 @@ minetest.register_on_generated(function(minp, maxp, seed)
 
 					if column_value > 0 and column_value + (warren_local_threshold - warren_value) * column_weight > 0 then
 						if c_warren_column then
-							if mapgen_helper.is_ground_content(data[vi]) then
+							if is_ground_content(data[vi]) then
 								data[vi] = c_warren_column -- add a column node
 							end
 							this_node_state = inside_column
 						end
 					else
-						if mapgen_helper.is_ground_content(data[vi]) then
+						if is_ground_content(data[vi]) then
 							data[vi] = c_warren_air --hollow it out to make the cave
 						end
 						if is_within_current_mapblock then
