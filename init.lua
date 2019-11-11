@@ -431,13 +431,13 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			if column_value > 0 and cave_value - column_value * column_weight < cave_local_threshold then
 				if mapgen_helper.is_ground_content(data[vi]) then
 					data[vi] = c_column -- add a column node
-					this_node_state = inside_column
 				end
+				this_node_state = inside_column
 			else
 				if mapgen_helper.is_ground_content(data[vi]) then
 					data[vi] = c_cavern_air --hollow it out to make the cave
-					this_node_state = inside_cavern
 				end
+				this_node_state = inside_cavern
 				if is_within_current_mapblock then
 					cavern_data.contains_cavern = true
 				end
@@ -520,7 +520,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 				if this_node_state == inside_column then
 					cavern_data.column_count = cavern_data.column_count + 1
 					column_nodes[cavern_data.column_count] = vi
-				elseif previous_node_state ~= this_node_state then
+				elseif previous_node_state ~= this_node_state and previous_node_state ~= inside_column then
 					if previous_node_state == inside_ground then
 						if this_node_state == inside_tunnel then
 							-- we just entered a tunnel from below.
