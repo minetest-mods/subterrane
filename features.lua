@@ -75,7 +75,6 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 	base_node_def.drawtype = "nodebox"
 	base_node_def.paramtype = "light"
 	base_node_def.paramtype2 = "facedir"
-	base_node_def.is_ground_content = true
 	base_node_def.node_box = {type = "fixed"}
 	
 	local def1 = deep_copy(base_node_def)
