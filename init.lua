@@ -138,28 +138,40 @@ local inside_column = 6
 -- Note that table.getn and # will not correctly report the number of items in these since they're reused
 -- between calls and are not cleared for efficiency. You can iterate through them using ipairs,
 -- and you can get their content count from the similarly-named variable associated with them.
-local cavern_data = {}
-local cavern_floor_nodes = {}
-cavern_data.cavern_floor_nodes = cavern_floor_nodes
-cavern_data.cavern_floor_count = 0
-local cavern_ceiling_nodes = {}
-cavern_data.cavern_ceiling_nodes = cavern_ceiling_nodes
-cavern_data.cavern_ceiling_count = 0
-local warren_floor_nodes = {}
-cavern_data.warren_floor_nodes = warren_floor_nodes
-cavern_data.warren_floor_count = 0
-local warren_ceiling_nodes = {}
-cavern_data.warren_ceiling_nodes = warren_ceiling_nodes
-cavern_data.warren_ceiling_count = 0
-local tunnel_floor_nodes = {}
-cavern_data.tunnel_floor_nodes = tunnel_floor_nodes
-cavern_data.tunnel_floor_count = 0
-local tunnel_ceiling_nodes = {}
-cavern_data.tunnel_ceiling_nodes = tunnel_ceiling_nodes
-cavern_data.tunnel_ceiling_count = 0
-local column_nodes = {}
-cavern_data.column_nodes = column_nodes
-cavern_data.column_count = 0
+local cavern_data
+local cavern_floor_nodes
+local cavern_ceiling_nodes
+local warren_floor_nodes
+local warren_ceiling_nodes
+local tunnel_floor_nodes
+local tunnel_ceiling_nodes
+local column_nodes
+
+local initialize_node_arrays = function()
+	cavern_data = {}
+	cavern_floor_nodes = {}
+	cavern_data.cavern_floor_nodes = cavern_floor_nodes
+	cavern_data.cavern_floor_count = 0
+	cavern_ceiling_nodes = {}
+	cavern_data.cavern_ceiling_nodes = cavern_ceiling_nodes
+	cavern_data.cavern_ceiling_count = 0
+	warren_floor_nodes = {}
+	cavern_data.warren_floor_nodes = warren_floor_nodes
+	cavern_data.warren_floor_count = 0
+	warren_ceiling_nodes = {}
+	cavern_data.warren_ceiling_nodes = warren_ceiling_nodes
+	cavern_data.warren_ceiling_count = 0
+	tunnel_floor_nodes = {}
+	cavern_data.tunnel_floor_nodes = tunnel_floor_nodes
+	cavern_data.tunnel_floor_count = 0
+	tunnel_ceiling_nodes = {}
+	cavern_data.tunnel_ceiling_nodes = tunnel_ceiling_nodes
+	cavern_data.tunnel_ceiling_count = 0
+	column_nodes = {}
+	cavern_data.column_nodes = column_nodes
+	cavern_data.column_count = 0
+end
+initialize_node_arrays()
 
 -- inserts nil after the last node so that ipairs will function correctly
 local close_node_arrays = function()
@@ -249,6 +261,7 @@ end
 --	cavern_def = cave_layer_def -- a reference to the cave layer def.
 --}
 
+local t_start = os.clock()
 subterrane.register_layer = function(cave_layer_def)
 	local error_out = false
 	if cave_layer_def.y_min == nil then
@@ -338,7 +351,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	if minp.y > YMAX or maxp.y < YMIN then
 		return
 	end
-	local t_start = os.clock()
+	t_start = os.clock()
 
 	if c_lava_set == nil then
 		c_lava_set = {}
@@ -586,5 +599,16 @@ minetest.register_on_generated(function(minp, maxp, seed)
 end)
 
 end
+
+local last_check = os.clock()
+minetest.register_globalstep(function(dtime)
+	local current_time = os.clock()
+	local threshold = t_start + 60
+	if last_check < threshold and current_time > threshold then
+		-- It's been 60 seconds since we last generated a cavern, release the memory the cavern arrays are being stored in.
+		initialize_node_arrays()
+	end
+	last_check = current_time
+end)
 
 minetest.log("info", "[Subterrane] loaded!")
