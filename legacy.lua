@@ -1,7 +1,7 @@
 --These nodes used to be defined by subterrane but were pulled due to not wanting to force all mods that use it to create these nodes.
 --For backwards compatibility they can still be defined here, however.
 
-local enable_legacy = minetest.setting_getbool("subterrane_enable_legacy_dripstone")
+local enable_legacy = minetest.settings:get_bool("subterrane_enable_legacy_dripstone", false)
 
 if enable_legacy then
 

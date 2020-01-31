@@ -17,7 +17,7 @@ local c_obsidian = minetest.get_content_id("default:obsidian")
 local c_cavern_air = c_air
 local c_warren_air = c_air
 
-local subterrane_enable_singlenode_mapping_mode = minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode")
+local subterrane_enable_singlenode_mapping_mode = minetest.settings:get_bool("subterrane_enable_singlenode_mapping_mode", false)
 if subterrane_enable_singlenode_mapping_mode then
 	c_cavern_air = c_stone
 	c_warren_air = c_clay
@@ -332,7 +332,7 @@ subterrane.register_layer = function(cave_layer_def)
 		
 	local decorate = cave_layer_def.decorate
 
-	if minetest.setting_getbool("subterrane_enable_singlenode_mapping_mode") then
+	if subterrane_enable_singlenode_mapping_mode then
 		decorate = nil
 		c_column = c_air
 		c_warren_column = nil
