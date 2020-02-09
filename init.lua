@@ -25,6 +25,9 @@ end
 
 local c_lava_set -- will be populated with a set of nodes that count as lava
 
+-- Performance instrumentation
+local t_start = os.clock()
+
 subterrane = {} --create a container for functions and constants
 
 subterrane.registered_layers = {}
@@ -261,7 +264,6 @@ end
 --	cavern_def = cave_layer_def -- a reference to the cave layer def.
 --}
 
-local t_start = os.clock()
 subterrane.register_layer = function(cave_layer_def)
 	local error_out = false
 	if cave_layer_def.y_min == nil then
@@ -273,7 +275,9 @@ subterrane.register_layer = function(cave_layer_def)
 		error_out = true
 	end
 	if error_out then return end
-		
+	
+	local cave_name = cave_layer_def.name
+
 	subterrane.set_defaults(cave_layer_def)
 	
 	local YMIN = cave_layer_def.y_min
@@ -589,13 +593,8 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	--write it to world
 	vm:write_to_map()
 	
-	local chunk_generation_time = math.ceil((os.clock() - t_start) * 1000) --grab how long it took
-	if chunk_generation_time < 1000 then
-		minetest.log("info", "[subterrane] "..chunk_generation_time.." ms to generate " .. cave_layer_def.name) --tell people how long
-	else
-		minetest.log("warning", "[subterrane] took "..chunk_generation_time.." ms to generate map block "
-			.. minetest.pos_to_string(minp) .. minetest.pos_to_string(maxp) .. " in cave layer " .. cave_layer_def.name)
-	end
+	local time_taken = os.clock() - t_start -- how long this chunk took, in seconds
+	mapgen_helper.record_time(cave_name, time_taken)
 end)
 
 end
