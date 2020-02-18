@@ -1,0 +1,4 @@
+Dry Dripstone=
+Dry Flowstone=
+Wet Dripstone=
+Wet Flowstone=
