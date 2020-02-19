@@ -1,4 +1,4 @@
-##### textdomain: subterrane #####
+# textdomain: subterrane
 
 
 ### legacy.lua ###
