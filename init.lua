@@ -402,7 +402,7 @@ minetest.register_on_generated(function(minp, maxp, seed)
 	for vi, x, y, z in area:iterp_yxz(emin, emax) do
 		-- We're "over-generating" when carving out the empty space of the cave volume so that decorations
 		-- can slop over the boundaries of the mapblock without being cut off.
-		-- We only want to add vi to the various decoration node lists if we're actually whithin the mapblock.
+		-- We only want to add vi to the various decoration node lists if we're actually within the mapblock.
 		local is_within_current_mapblock = mapgen_helper.is_pos_within_box({x=x, y=y, z=z}, minp, maxp)
 		
 		if y < previous_y then
@@ -452,7 +452,9 @@ minetest.register_on_generated(function(minp, maxp, seed)
 			end
 			
 			if column_value > 0 and cave_value - column_value * column_weight < cave_local_threshold then
-				if is_ground_content(data[vi]) then
+				-- only add column nodes if we're within the current mapblock because
+				-- otherwise we're adding column nodes that the decoration loop won't know about
+				if is_ground_content(data[vi]) and is_within_current_mapblock then
 					data[vi] = c_column -- add a column node
 				end
 				this_node_state = inside_column
