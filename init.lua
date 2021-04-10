@@ -39,6 +39,7 @@ local modpath = minetest.get_modpath(minetest.get_current_modname())
 dofile(modpath.."/defaults.lua")
 dofile(modpath.."/features.lua") -- some generic cave features useful for a variety of mapgens
 dofile(modpath.."/player_spawn.lua") -- Function for spawning a player in a giant cavern
+dofile(modpath.."/test_pos.lua") -- Function other mapgens can use to test if a position is inside a cavern
 dofile(modpath.."/legacy.lua") -- contains old node definitions and functions, will be removed at some point in the future.
 
 local disable_mapgen_caverns = function()
