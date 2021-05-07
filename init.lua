@@ -4,15 +4,21 @@
 -- Depends default
 -- License: code MIT
 
-local c_stone = minetest.get_content_id("default:stone")
-local c_clay = minetest.get_content_id("default:clay")
-local c_desert_stone = minetest.get_content_id("default:desert_stone")
-local c_sandstone = minetest.get_content_id("default:sandstone")
+subterrane = {} --create a container for functions and constants
+
+local modpath = minetest.get_modpath(minetest.get_current_modname())
+
+dofile(modpath.."/dependencies.lua")
+
+local c_stone = minetest.get_content_id(subterrane.dependencies.stone)
+local c_clay = minetest.get_content_id(subterrane.dependencies.clay)
+local c_desert_stone = minetest.get_content_id(subterrane.dependencies.desert_stone)
+local c_sandstone = minetest.get_content_id(subterrane.dependencies.sandstone)
 
 local c_air = minetest.get_content_id("air")
-local c_water = minetest.get_content_id("default:water_source")
+local c_water = minetest.get_content_id(subterrane.dependencies.water)
 
-local c_obsidian = minetest.get_content_id("default:obsidian")
+local c_obsidian = minetest.get_content_id(subterrane.dependencies.obsidian)
 
 local c_cavern_air = c_air
 local c_warren_air = c_air
@@ -28,14 +34,8 @@ local c_lava_set -- will be populated with a set of nodes that count as lava
 -- Performance instrumentation
 local t_start = os.clock()
 
-subterrane = {} --create a container for functions and constants
-
 subterrane.registered_layers = {}
 
---grab a shorthand for the filepath of the mod
-local modpath = minetest.get_modpath(minetest.get_current_modname())
-
---load companion lua files
 dofile(modpath.."/defaults.lua")
 dofile(modpath.."/features.lua") -- some generic cave features useful for a variety of mapgens
 dofile(modpath.."/player_spawn.lua") -- Function for spawning a player in a giant cavern
