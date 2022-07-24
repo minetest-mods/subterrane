@@ -276,8 +276,6 @@ subterrane.register_layer = function(cave_layer_def)
 		error_out = true
 	end
 	if error_out then return end
-	
-	local cave_name = cave_layer_def.name
 
 	subterrane.set_defaults(cave_layer_def)
 	
@@ -287,21 +285,26 @@ subterrane.register_layer = function(cave_layer_def)
 	if cave_layer_def.name == nil then
 		cave_layer_def.name = tostring(YMIN) .. " to " .. tostring(YMAX)
 	end
-	
-	table.insert(subterrane.registered_layers, cave_layer_def)
+
+	local cave_name = cave_layer_def.name
+
+	if subterrane.registered_layers[cave_name] ~= nil then
+		minetest.log("warning", "[subterrane] cave layer def " .. tostring(cave_name) .. " has already been registered. Overriding with new definition.")
+	end
+	subterrane.registered_layers[cave_name] = cave_layer_def
 
 	local block_size = mapgen_helper.block_size
 	
 	if (YMAX+32+1)%block_size ~= 0 then
 		local boundary = YMAX -(YMAX+32+1)%block_size
 		minetest.log("warning", "[subterrane] The y_max setting "..tostring(YMAX)..
-			" for cavern layer " .. cave_layer_def.name .. " is not aligned with map chunk boundaries. Consider "..
+			" for cavern layer " .. cave_name .. " is not aligned with map chunk boundaries. Consider "..
 			tostring(boundary) .. " or " .. tostring(boundary+block_size) .. " for maximum mapgen efficiency.")
 	end
 	if (YMIN+32)%block_size ~= 0 then
 		local boundary = YMIN - (YMIN+32)%block_size
 		minetest.log("warning", "[subterrane] The y_min setting "..tostring(YMIN)..
-			" for cavern layer " .. cave_layer_def.name .. " is not aligned with map chunk boundaries. Consider "..
+			" for cavern layer " .. cave_name .. " is not aligned with map chunk boundaries. Consider "..
 			tostring(boundary) .. " or " .. tostring(boundary+block_size) .. " for maximum mapgen efficiency.")
 	end
 

@@ -448,26 +448,6 @@ function subterrane:vertically_consistent_random(vi, area)
 	return subterrane:vertically_consistent_randomp(pos)
 end
 
-subterrane.get_column_points = function(minp, maxp, column_def)
-	local grids = mapgen_helper.get_nearest_regions(minp, grid_size)
-	local points = {}
-	for _, grid in ipairs(grids) do
-		--The y value of the returned point will be the radius of the column
-		local minp = {x=grid.x, y = column_def.min_column_radius*100, z=grid.z}
-		local maxp = {x=grid.x+grid_size-1, y=column_def.max_column_radius*100, z=grid.z+grid_size-1}
-		for _, point in ipairs(mapgen_helper.get_random_points(minp, maxp, column_def.minimum_count, column_def.maximum_count)) do
-			point.y = point.y / 100
-			if point.x > minp.x - point.y
-				and point.x < maxp.x + point.y
-				and point.z > minp.z - point.y
-				and point.z < maxp.z + point.y then
-				table.insert(points, point)
-			end			
-		end
-	end
-	return points
-end
-
 subterrane.get_point_heat = function(pos, points)
 	local heat = 0
 	for _, point in ipairs(points) do
