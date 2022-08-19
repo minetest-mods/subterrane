@@ -267,7 +267,7 @@ function subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, 
 	for j = -2, stem_height do -- going down to -2 to ensure the stem is flush with the ground
 		local vi = area:index(x, y+j, z)
 		if j >= 0 or area:containsi(vi) then -- since -2 puts us below the bounds we've already tested, add a contains check here.
-			if mapgen_helper.buildable_to(data[vi]) then data[vi] = stem_material end
+			if mapgen_helper.buildable_to(data[vi]) or data[vi] == gill_material then data[vi] = stem_material end
 			if cap_radius > 3 then
 				local ai = area:index(x, y+j, z+1)
 				if mapgen_helper.buildable_to(data[ai]) or data[ai] == gill_material then data[ai] = stem_material end
