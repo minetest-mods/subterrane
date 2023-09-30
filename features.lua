@@ -76,7 +76,7 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 	base_node_def.paramtype = "light"
 	base_node_def.paramtype2 = "facedir"
 	base_node_def.node_box = {type = "fixed"}
-	
+
 	local def1 = deep_copy(base_node_def)
 	def1.groups.fall_damage_add_percent = 100
 	def1.node_box.fixed = stal_box_1
@@ -110,7 +110,7 @@ subterrane.register_stalagmite_nodes = function(base_name, base_node_def, drop_b
 		def4.drop = drop_base_name.."_4"
 	end
 	minetest.register_node(base_name.."_4", def4)
-	
+
 	return {
 		minetest.get_content_id(base_name.."_1"),
 		minetest.get_content_id(base_name.."_2"),
@@ -126,7 +126,7 @@ end
 function subterrane.stalagmite(vi, area, data, param2_data, param2, height, stalagmite_id)
 	if height == nil then height = math.random(1,4) end
 	if param2 == nil then param2 = math.random(0,3) end
-	
+
 	local sign, id_modifier
 	if height > 0 then
 		sign = 1
@@ -135,14 +135,14 @@ function subterrane.stalagmite(vi, area, data, param2_data, param2, height, stal
 		sign = -1
 		id_modifier = 0
 	end
-	
+
 	for i = 1, math.abs(height) do
 		local svi = vi + (height - i * sign) * area.ystride
 		if data[svi] == c_air then -- test for air because we don't want these poking into water
 			data[svi] = stalagmite_id[math.min(i+id_modifier,4)]
 			param2_data[svi] = param2
 		end
-	end	
+	end
 end
 
 function subterrane.stalactite(vi, area, data, param2_data, param2, height, stalagmite_id)
@@ -153,8 +153,8 @@ end
 -- Builds very large stalactites and stalagmites
 
 --giant stalagmite spawner
-function subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
-	local pos = area:position(vi)
+function subterrane.big_stalagmite(vi_spawn, area, data, min_height, max_height, base_material, root_material, shaft_material)
+	local pos = area:position(vi_spawn)
 	local x = pos.x
 	local y = pos.y
 	local z = pos.z
@@ -188,8 +188,8 @@ function subterrane.big_stalagmite(vi, area, data, min_height, max_height, base_
 end
 
 --giant stalactite spawner
-function subterrane.big_stalactite(vi, area, data, min_height, max_height, base_material, root_material, shaft_material)
-	local pos = area:position(vi)
+function subterrane.big_stalactite(vi_spawn, area, data, min_height, max_height, base_material, root_material, shaft_material)
+	local pos = area:position(vi_spawn)
 	local x = pos.x
 	local y = pos.y
 	local z = pos.z
@@ -227,15 +227,15 @@ end
 
 --function to create giant 'shrooms. Cap radius works well from about 2-6
 --if ignore_bounds is true this function will place the mushroom even if it overlaps the edge of the voxel area.
-function subterrane.giant_mushroom(vi, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
+function subterrane.giant_mushroom(vi_spawn, area, data, stem_material, cap_material, gill_material, stem_height, cap_radius, ignore_bounds)
 
-	if not ignore_bounds and 
-		not (area:containsi(vi - cap_radius - area.zstride*cap_radius) and 
-		area:containsi(vi + cap_radius + stem_height*area.ystride + area.zstride*cap_radius)) then
+	if not ignore_bounds and
+		not (area:containsi(vi_spawn - cap_radius - area.zstride*cap_radius) and
+		area:containsi(vi_spawn + cap_radius + stem_height*area.ystride + area.zstride*cap_radius)) then
 			return false -- mushroom overlaps the bounds of the voxel area, abort.
 	end
 
-	local pos = area:position(vi)
+	local pos = area:position(vi_spawn)
 	local x = pos.x
 	local y = pos.y
 	local z = pos.z

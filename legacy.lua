@@ -69,8 +69,6 @@ end
 
 --FUNCTIONS--
 
-local grid_size = mapgen_helper.block_size * 4
-
 function subterrane:vertically_consistent_randomp(pos)
 	local next_seed = math.floor(math.random() * 2^31)
 	math.randomseed(minetest.hash_node_position({x=pos.x, y=0, z=pos.z}))
@@ -91,7 +89,7 @@ subterrane.get_point_heat = function(pos, points)
 		local radius = point.y
 		if (pos.x >= axis_point.x-radius and pos.x <= axis_point.x+radius
 			and pos.z >= axis_point.z-radius and pos.z <= axis_point.z+radius) then
-			
+
 			local dist = vector.distance(pos, axis_point)
 			if dist < radius then
 				heat = math.max(heat, 1 - dist/radius)
@@ -113,7 +111,7 @@ function subterrane:override_biome(biome_def)
 		minetest.unregister_biome(biome_def.name)
 		minetest.register_biome(biome_def)
 		return
-	end	
+	end
 
 	local registered_biomes_copy = {}
 	for old_biome_key, old_biome_def in pairs(minetest.registered_biomes) do
